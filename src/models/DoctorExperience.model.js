@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 
-/**
- * DoctorExperience – multiple experience records per doctor.
- */
+
 const doctorExperienceSchema = new mongoose.Schema(
   {
     docID:       { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', required: true },

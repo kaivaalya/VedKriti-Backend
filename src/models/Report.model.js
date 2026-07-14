@@ -1,9 +1,6 @@
 const mongoose = require('mongoose');
 
-/**
- * Report – medical reports uploaded by patients, prescriptions by doctors.
- * Files are stored on Cloudinary.
- */
+
 const reportSchema = new mongoose.Schema(
   {
     patID:     { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },

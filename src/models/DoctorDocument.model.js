@@ -1,9 +1,6 @@
 const mongoose = require('mongoose');
 
-/**
- * DoctorDocument – certificates and verification docs uploaded by a doctor.
- * Stored on Cloudinary; admins review these before verifying the doctor.
- */
+
 const doctorDocumentSchema = new mongoose.Schema(
   {
     docID:    { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', required: true },

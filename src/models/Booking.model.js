@@ -1,12 +1,6 @@
 const mongoose = require('mongoose');
 
-/**
- * Booking – stores the complete lifecycle of an appointment.
- *
- * Status flow:
- *   PENDING → CONFIRMED → CONSULTING → DONE
- *                        ↘ CANCELLED (any stage)
- */
+
 const bookingSchema = new mongoose.Schema(
   {
     docID: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor',  required: true },
@@ -26,14 +20,14 @@ const bookingSchema = new mongoose.Schema(
     otp:       { type: String, default: '' },
     otpExpiry: { type: Date },
 
-    // Feedback (filled after DONE)
+   
     rating:   { type: Number, min: 1, max: 5, default: null },
     feedback: { type: String, default: '' },
 
-    // Pre-diagnosis text (optional patient intake before consultation)
+   
     preDiagnosis: { type: String, default: '' },
 
-    // Cancellation
+    
     cancellationReason: { type: String, default: '' },
   },
   { timestamps: true }

@@ -1,8 +1,5 @@
 const mongoose = require('mongoose');
 
-/**
- * Patient – verified patient accounts.
- */
 const patientSchema = new mongoose.Schema(
   {
     name:     { type: String, required: true, trim: true },

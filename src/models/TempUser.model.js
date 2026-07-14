@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 
-/**
- * TempUser – Holds unverified registrations until OTP is confirmed.
- * After verification the document is deleted and the user is inserted
- * into Doctor or Patient collection.
- */
+
 const tempUserSchema = new mongoose.Schema(
   {
     name:     { type: String, required: true, trim: true },

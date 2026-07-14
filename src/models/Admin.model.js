@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 
-/**
- * Admin – platform administrators.
- */
+
 const adminSchema = new mongoose.Schema(
   {
     name:     { type: String, required: true, trim: true },
