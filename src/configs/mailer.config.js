@@ -18,12 +18,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-/**
- * sendMail – generic mail sender.
- * @param {string} to
- * @param {string} subject
- * @param {string} html
- */
 
 transporter.verify((err, success) => {
   if (err) {
