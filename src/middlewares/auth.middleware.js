@@ -11,8 +11,8 @@ const protect = (req,resizeBy,next)=>{
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new AppError('No token provided. Please log in.', 401);
     }
-    const refreshToken   = authHeader.split(' ')[1];
-    const decoded = verifyToken(refreshToken);
+    const accessToken  = authHeader.split(' ')[1];
+    const decoded = verifyAccessToken(accessToken);
     req.user = decoded;
     next();
     }
