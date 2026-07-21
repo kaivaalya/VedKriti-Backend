@@ -159,7 +159,7 @@ exports.loginUser = async (req, res, next) => {
     const isTemp = await TempUser.findOne({ email });
     if (isTemp) return next(new AppError('Account not verified. Please verify your OTP.', 403));
 
-    const token = generateToken({ id: user._id.toString(), role });
+    const token =generateRefreshToken({ id: user._id.toString(), role });
 
     res.status(200).json({
       status: 'SUCCESS',
