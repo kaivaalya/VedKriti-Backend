@@ -6,12 +6,13 @@ const patientRouter=require("./routes/patient.routes")
 const bookingRouter=require("./routes/booking.routes")
 const reportRouter=require("./routes/report.routes")
 const adminRouter=require("./routes/admin.routes")
-
+const cors = require('cors');
 const app=express()
 
 
 app.use(cookieParser());
 app.use(express.json())
+app.use(cors());
 
 
 
