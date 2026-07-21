@@ -2,6 +2,7 @@ const Doctor = require("../models/Doctor.model");
 const Patient = require("../models/Patient.model");
 const AppError = require("../utils/AppError");
 const bcrypt = require("bcrypt");
+const DoctorDocument = require("../models/DoctorDocument.model");
 const {
     generateAccessToken,
     generateRefreshToken,
@@ -249,7 +250,29 @@ exports.getAllDoctors = async(req,res,next)=>{
 }
 
 exports.getDoctorDocuments = async(req,res,next)=>{
+try {
 
+        const { id } = req.params;
+
+        const documents = await DoctorDocument.find({
+            docID: id
+        }
+               "title fileUrl fileType isPublic");
+
+        if (documents.length === 0) {
+            return next(
+                new AppError("No documents found.", 404)
+            );
+        }
+
+        res.status(200).json({
+            status: "SUCCESS",
+            data: documents
+        });
+
+    } catch (err) {
+        next(err);
+    }
 }
 
 exports.removeDoctor = async(req,res,next)=>{
