@@ -1,4 +1,11 @@
 {
+  "name": "VedKriti-Backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.0",
@@ -10,6 +17,10 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.4",
     "multer": "^2.2.0",
-    "nodemailer": "^9.0.3"
+    "nodemailer": "^9.0.3",
+    "streamifier": "^0.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }

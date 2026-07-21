@@ -8,7 +8,7 @@ const { generateConsultationOTP, generateOTP } = require('../utils/otp.utils');
 const {
   sendBookingConfirmationEmail,
   sendCancellationEmail,
-} = require('../config/mailer.config');
+} = require('../configs/mailer.config');
 const AppError = require('../utils/AppError');
 
 

@@ -13,4 +13,4 @@ const doctorExperienceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('DoctorExperience', doctorExperienceSchema);
+module.exports = mongoose.models.DoctorExperience || mongoose.model('DoctorExperience', doctorExperienceSchema);

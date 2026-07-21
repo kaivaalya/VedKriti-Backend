@@ -5,6 +5,7 @@ const doctorRouter= require("./routes/doctor.routes")
 const patientRouter=require("./routes/patient.routes")
 const bookingRouter=require("./routes/booking.routes")
 const reportRouter=require("./routes/report.routes")
+const adminRouter=require("./routes/admin.routes")
 
 const app=express()
 
@@ -19,6 +20,7 @@ app.use("/api/doctor",doctorRouter)
 app.use("/api/patient",patientRouter)
 app.use("/api/booking",bookingRouter)
 app.use("/api/report",reportRouter)
+app.use("/api/admin",adminRouter)
 
 
 

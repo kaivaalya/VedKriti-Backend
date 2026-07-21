@@ -2,9 +2,9 @@ const Doctor = require('../models/Doctor.model');
 const DoctorExperience = require('../models/DoctorExperience.model');
 const DoctorDocument = require('../models/DoctorDocument.model');
 const DoctorAvailability = require('../models/DoctorAvailability.model');
-const { uploadToCloudinary, deleteFromCloudinary } = require('../config/cloudinary.config');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../configs/cloudinary.config');
 const AppError = require('../utils/AppError');
-const { updateOne } = require('../models/Admin.model');
+const Admin = require('../models/Admin.model');
 
 
 const regenrateAvailability = async (docID, morningCap, afternoonCap, eveningCap, holidays) => {
@@ -44,10 +44,10 @@ const regenrateAvailability = async (docID, morningCap, afternoonCap, eveningCap
 };
 
 
-put / api / doctor / set - practiceLOcation
+//put / api / doctor / set - practiceLOcation
 
 // PUT /api/doctor/set-practiceLocation
-exports.setPracticeLOcation = async (req, res, next) => {
+exports.setPracticeLocation = async (req, res, next) => {
 
     try {
         const { city, state, country, address, pin, facilityName, consultationFee } = req.body;
@@ -254,7 +254,7 @@ exports.getDoctorProfile = async (req,res,next)=>{
 }
 
 // POST /api/doctor/addexperience
-exports.addExperiance = async (req,res,next)=>{
+exports.addExperience = async (req,res,next)=>{
     try{
         const {facilityName, designation, startDate, endDate, isCurrent}=req.body
         const exp = await DoctorExperiance.create({
@@ -278,7 +278,7 @@ exports.getExperience = async (req,res,next)=>{
 }
 
 // DELETE /api/doctor/experience/:expId
-exports.deleteExperiance = async (req,res,next)=>{
+exports.deleteExperience = async (req,res,next)=>{
     try{
         const exp = await DoctorExperience.findOneAndDelete({_id: req.params.expId, docID: req.user.id });
         if(!exp)return next(new AppError('experiance record not Found',404));

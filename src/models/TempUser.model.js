@@ -16,4 +16,4 @@ const tempUserSchema = new mongoose.Schema(
 // TTL index – automatically remove docs that haven't been verified after 15 min
 tempUserSchema.index({ otpExpiry: 1 }, { expireAfterSeconds: 0 });
 
-module.exports = mongoose.model('TempUser', tempUserSchema);
+module.exports = mongoose.models.TempUser || mongoose.model('TempUser', tempUserSchema);

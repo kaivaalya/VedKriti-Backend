@@ -1,7 +1,7 @@
 const Doctor = require("../models/Doctor.model");
 const Patient = require("../models/Patient.model");
 const AppError = require("../utils/AppError");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const DoctorDocument = require("../models/DoctorDocument.model");
 const {
     generateAccessToken,
@@ -256,8 +256,7 @@ try {
 
         const documents = await DoctorDocument.find({
             docID: id
-        }
-               "title fileUrl fileType isPublic");
+        }).select("title fileUrl fileType isPublic");
 
         if (documents.length === 0) {
             return next(

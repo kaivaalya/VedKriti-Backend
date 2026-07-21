@@ -48,4 +48,4 @@ doctorSchema.index(
   { name: 'text', city: 'text', specialization1: 'text', specialization2: 'text', specialization3: 'text', facilityName: 'text' }
 );
 
-module.exports = mongoose.model('Doctor', doctorSchema);
+module.exports = mongoose.models.Doctor || mongoose.model('Doctor', doctorSchema);

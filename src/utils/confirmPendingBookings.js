@@ -1,16 +1,17 @@
-const Booking = require("../models/booking.model");
-const DoctorAvailability = require("../models/doctorAvailability.model");
-const Patient = require("../models/patient.model");
+const mongoose = require('mongoose');
+const Booking = require('../models/Booking.model');
+const DoctorAvailability = require("../models/DoctorAvailability.model");
+const Patient = require("../models/Patient.model");
 
 
 const {
     generateConsultationOTP
-} = require("./otp");
+} = require("./otp.utils");
 
 
 const {
     sendBookingConfirmationEmail
-} = require("../services/email");
+} = require("../configs/mailer.config");
 
 
 

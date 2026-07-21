@@ -38,6 +38,6 @@ router.get("/doctors/pending", getPendingDoctors);
 router.patch("/doctors/:id/verify", verifyDoctor);
 router.get("/doctors", getAllDoctors);
 router.delete("/doctors/:id", removeDoctor);
-router.get("/doctors/:id/documents, getDoctorDocuments);
+router.get("/doctors/:id/documents", getDoctorDocuments);
 
 module.exports=router;

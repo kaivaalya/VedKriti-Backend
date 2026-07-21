@@ -1,7 +1,7 @@
 
 const Patient = require('../models/Patient.model');
 const Booking = require('../models/Booking.model');
-const { uploadToCloudinary } = require('../config/cloudinary.config');
+const { uploadToCloudinary } = require('../configs/cloudinary.config');
 const AppError = require('../utils/AppError');
 
 
@@ -24,7 +24,7 @@ exports.getProfile= async (req,resizeBy,next)=>{
 
 // PUT /api/patient/update-profile  
 
-exports.uodateProfile =async (req,res,next)=>{
+exports.updateProfile =async (req,res,next)=>{
     try 
     {
         const {name,phone,gender,dob,address}=req.body;

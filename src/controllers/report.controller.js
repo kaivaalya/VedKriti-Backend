@@ -1,6 +1,6 @@
 const Report  = require('../models/Report.model');
 const Booking = require('../models/Booking.model');
-const { uploadToCloudinary, deleteFromCloudinary } = require('../config/cloudinary.config');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../configs/cloudinary.config');
 const AppError = require('../utils/AppError');
 
 
