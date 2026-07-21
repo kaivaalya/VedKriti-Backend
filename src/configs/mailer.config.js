@@ -3,26 +3,18 @@ require("dotenv").config()
 
 
 
-
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    type: "OAuth2",
     user: process.env.GOOGLE_USER,
-    clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-    
-   
-    
+    pass: process.env.GOOGLE_APP_PASSWORD,
   },
 });
 
 
 transporter.verify((err, success) => {
   if (err) {
-    console.log("VERIFY ERROR");
-    console.log(err);
+    console.error(err);
   } else {
     console.log("SMTP Ready");
   }
