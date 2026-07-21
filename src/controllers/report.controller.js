@@ -3,12 +3,12 @@ const Booking = require('../models/Booking.model');
 const { uploadToCloudinary, deleteFromCloudinary } = require('../config/cloudinary.config');
 const AppError = require('../utils/AppError');
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // PUT /api/report/upload-report?id=<patientId>
 // For PATIENT: uploads their own report (id = their own patID)
 // For DOCTOR:  uploads a prescription linked to a booking
 // Body (multipart): file, title, category, bookingId (optional)
-// ─────────────────────────────────────────────────────────────────────────────
+
 exports.uploadReport = async (req, res, next) => {
   try {
     if (!req.file) return next(new AppError('No file attached.', 400));
@@ -57,11 +57,11 @@ exports.uploadReport = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // GET /api/report/get-reports?id=<patientId>
 // PATIENT  – can only fetch their own reports (id ignored; uses token)
 // DOCTOR   – can fetch a patient's reports IF they have/had a consultation relation
-// ─────────────────────────────────────────────────────────────────────────────
+
 exports.getReports = async (req, res, next) => {
   try {
     let targetPatID;
@@ -98,9 +98,9 @@ exports.getReports = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 // DELETE /api/report/:reportId   (PATIENT only – own reports)
-// ─────────────────────────────────────────────────────────────────────────────
+
 exports.deleteReport = async (req, res, next) => {
   try {
     if (req.user.role !== 'PATIENT') return next(new AppError('Only patients can delete their own reports.', 403));
