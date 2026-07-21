@@ -51,7 +51,7 @@ exports.setPracticeLocation = async (req, res, next) => {
 
     try {
         const { city, state, country, address, pin, facilityName, consultationFee } = req.body;
-        const { docID } = req.user.id;
+        const docID = req.user.id;
 
 
         const update = await Doctor.findByIdAndUpdate(

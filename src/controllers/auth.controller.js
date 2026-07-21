@@ -130,48 +130,7 @@ exports.verifyUser = async (req, res, next) => {
 
 
 
-// POST /api/auth/login-user
 
-exports.loginUser = async (req, res, next) => {
-  try {
-    const { email, password, role } = req.body;
-    if (!email || !password || !role) {
-      return next(new AppError('email, password and role are required.', 400));
-    }
-
-    let user;
-    if (role === 'PATIENT') {
-      user = await Patient.findOne({ email });
-    } else if (role === 'DOCTOR') {
-      user = await Doctor.findOne({ email });
-    } else if (role === 'ADMIN') {
-      user = await Admin.findOne({ email });
-    } else {
-      return next(new AppError('Invalid role.', 400));
-    }
-
-    if (!user) return next(new AppError('Invalid credentials.', 401));
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return next(new AppError('Invalid credentials.', 401));
-
-    // Check unverified (stored in TempUser still)
-    const isTemp = await TempUser.findOne({ email });
-    if (isTemp) return next(new AppError('Account not verified. Please verify your OTP.', 403));
-
-    const token =generateRefreshToken({ id: user._id.toString(), role });
-
-    res.status(200).json({
-      status: 'SUCCESS',
-      token,
-      userId: user._id,
-      role,
-      name:   user.name,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
 
 
 // POST /api/auth/login-user
@@ -215,7 +174,7 @@ exports.loginUser = async (req, res, next) => {
 
     res.status(200).json({
       status: 'SUCCESS',
-      accessToken,
+      token: accessToken,
       userId: user._id,
       role,
       name:   user.name,
@@ -229,9 +188,9 @@ exports.loginUser = async (req, res, next) => {
 
 // POST /api/auth/refreshToken
 
-exports.refreshToken =(req,res)=>{
+exports.refreshToken = (req, res, next) => {
 try{
-    const refreshToken = req.cookie.refreshToken;
+    const refreshToken = req.cookies.refreshToken;
 
     if(!refreshToken){
          throw new AppError('No token provided. Please log in.', 401);

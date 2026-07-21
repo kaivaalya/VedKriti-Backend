@@ -3,7 +3,7 @@ const AppError         = require('../utils/AppError');
 
 
 
-const protect = (req,resizeBy,next)=>{
+const protect = (req, res, next) => {
 
     try{
         
