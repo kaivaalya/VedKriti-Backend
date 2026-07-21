@@ -21,7 +21,7 @@ const {
 const {
     adminLogin,
     verify,
-    refreshToken,clearCookie
+    refreshToken,clearCookie,getDoctorDocuments
 } = require("../controllers/admin.controller");
 
 
@@ -38,5 +38,6 @@ router.get("/doctors/pending", getPendingDoctors);
 router.patch("/doctors/:id/verify", verifyDoctor);
 router.get("/doctors", getAllDoctors);
 router.delete("/doctors/:id", removeDoctor);
+router.get("/doctors/:id/documents, getDoctorDocuments);
 
 module.exports=router;
