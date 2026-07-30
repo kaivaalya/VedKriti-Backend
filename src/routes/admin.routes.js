@@ -21,11 +21,11 @@ const {
 const {
     adminLogin,
     verify,
-    refreshToken,clearCookie,getDoctorDocuments
+    refreshToken,clearCookie
 } = require("../controllers/admin.controller");
 
 
-const { protect } = require("../middlewares/auth.middleware");
+const { protect,restrictTo} = require("../middlewares/auth.middleware");
 
 
 router.post("/login", adminLogin);
@@ -33,11 +33,10 @@ router.post("/login", adminLogin);
 router.get("/verify", protect, verify);
 router.post("/refresh-token", refreshToken);
 
-router.get("/dashboard", getPlatformStats);
-router.get("/doctors/pending", getPendingDoctors);
-router.patch("/doctors/:id/verify", verifyDoctor);
-router.get("/doctors", getAllDoctors);
-router.delete("/doctors/:id", removeDoctor);
-router.get("/doctors/:id/documents", getDoctorDocuments);
+router.get("/dashboard",protect,restrictTo("ADMIN"), getPlatformStats);
+router.get("/doctors/pending",protect,restrictTo("ADMIN"), getPendingDoctors);
+router.patch("/doctors/:id/verify",protect,restrictTo("ADMIN"), verifyDoctor);
+router.get("/doctors",protect,restrictTo("ADMIN"), getAllDoctors);
+router.delete("/doctors/:id",protect,restrictTo("ADMIN"), removeDoctor);
 
 module.exports=router;
