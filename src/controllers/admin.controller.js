@@ -1,9 +1,8 @@
 const Doctor = require("../models/Doctor.model");
 const Patient = require("../models/Patient.model");
-const AppError = require("../utils/AppError");
 const Admin = require("../models/Admin.model");
-const bcrypt = require("bcryptjs");
-const DoctorDocument = require("../models/DoctorDocument.model");
+const AppError = require("../utils/AppError");
+const bcrypt = require("bcrypt");
 const {
     generateAccessToken,
     generateRefreshToken,
@@ -35,12 +34,12 @@ exports.adminLogin = async(req,res,next)=>{
     
         const accessToken = generateAccessToken({
             id: admin._id,
-            role: "admin",
+            role: "ADMIN",
         });
 
         const refreshToken = generateRefreshToken({
             id: admin._id,
-            role: "admin",
+            role: "ADMIN",
         });
 
         res.cookie("refreshToken", refreshToken, {
@@ -251,28 +250,7 @@ exports.getAllDoctors = async(req,res,next)=>{
 }
 
 exports.getDoctorDocuments = async(req,res,next)=>{
-try {
 
-        const { id } = req.params;
-
-        const documents = await DoctorDocument.find({
-            docID: id
-        }).select("title fileUrl fileType isPublic");
-
-        if (documents.length === 0) {
-            return next(
-                new AppError("No documents found.", 404)
-            );
-        }
-
-        res.status(200).json({
-            status: "SUCCESS",
-            data: documents
-        });
-
-    } catch (err) {
-        next(err);
-    }
 }
 
 exports.removeDoctor = async(req,res,next)=>{
