@@ -1,6 +1,7 @@
 const Doctor = require("../models/Doctor.model");
 const Patient = require("../models/Patient.model");
 const AppError = require("../utils/AppError");
+const Admin = require("../models/Admin.model");
 const bcrypt = require("bcryptjs");
 const DoctorDocument = require("../models/DoctorDocument.model");
 const {
