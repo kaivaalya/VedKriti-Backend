@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const Admin = require("./src/models/Admin.model");
-
-mongoose.connect(process.env.MONGO_URI);
+require("dotenv").config();
+mongoose.connect(process.env.CONNECTING_STRING);
 
 async function seedAdmin() {
     const hashedPassword = await bcrypt.hash("admin123", 10);
