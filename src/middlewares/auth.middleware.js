@@ -1,5 +1,6 @@
 const{generateAccessToken,generateRefreshToken,verifyAccessToken,verifyRefreshToken}=require("../utils/jwt.utils")
 const AppError         = require('../utils/AppError');
+const Doctor = require("../models/Doctor.model");
 
 
 
@@ -41,4 +42,20 @@ const restrictTo = (...roles) => (req, res, next) => {
   next();
 };
 
-module.exports = { protect, restrictTo };
+
+const verifedDoctor =async  (req,res,next)=>{
+
+  const doctor = await Doctor.findOne({_id:req.user.id ,  verified:"true"});
+
+  if(!doctor){
+    return next(new AppError("Doctor not verified",403));
+  }
+
+
+  next()
+}
+
+module.exports = { protect, restrictTo , verifedDoctor};
+
+
+

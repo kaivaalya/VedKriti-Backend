@@ -1,7 +1,7 @@
 const express = require('express');
 const router  = express.Router();
 const ctrl    = require('../controllers/doctor.controller');
-const { protect, restrictTo } = require('../middlewares/auth.middleware');
+const { protect, restrictTo ,verifedDoctor} = require('../middlewares/auth.middleware');
 const { uploadMiddleware }    = require('../configs/cloudinary.config');
 
 
@@ -35,13 +35,13 @@ router.put('/set-about', uploadMiddleware('photo', 5), ctrl.setAbout);
 router.get('/get-about', ctrl.getAbout);
 
 
-router.post('/experience',       ctrl.addExperience);
-router.get('/experience',        ctrl.getExperience);
-router.delete('/experience/:expId', ctrl.deleteExperience);
+router.post('/experience',verifedDoctor,       ctrl.addExperience);
+router.get('/experience',verifedDoctor,        ctrl.getExperience);
+router.delete('/experience/:expId',verifedDoctor, ctrl.deleteExperience);
 
 
-router.post('/upload-document',    uploadMiddleware('document', 10), ctrl.uploadDocument);
-router.get('/documents',           ctrl.getDocuments);
-router.delete('/document/:docId',  ctrl.deleteDocument);
+router.post('/upload-document',verifedDoctor,    uploadMiddleware('document', 10), ctrl.uploadDocument);
+router.get('/documents',verifedDoctor,           ctrl.getDocuments);
+router.delete('/document/:docId',verifedDoctor,  ctrl.deleteDocument);
 
 module.exports = router;

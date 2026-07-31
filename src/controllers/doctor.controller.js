@@ -2,6 +2,7 @@ const Doctor = require('../models/Doctor.model');
 const DoctorExperience = require('../models/DoctorExperience.model');
 const DoctorDocument = require('../models/DoctorDocument.model');
 const DoctorAvailability = require('../models/DoctorAvailability.model');
+const Booking = require('../models/Booking.model')
 const { uploadToCloudinary, deleteFromCloudinary } = require('../configs/cloudinary.config');
 const AppError = require('../utils/AppError');
 const Admin = require('../models/Admin.model');
@@ -189,11 +190,11 @@ exports.getAbout= (req,res,next)=>{
     }
 }
 
-// GET /api/doctor/find-doctor?city=&facilityName=&specialization=&name=&minFee=&maxFee=&minRating=
+// GET /api/doctor/find-doctor?city=&facilityName=&specialization=&name=&minFee=&maxFee=&minRating=&date=
 
 exports.findDoctor = async (req,res,next)=>{
     try{
-         const { city, facilityName, specialization, name, minFee, maxFee, minRating } = req.query;
+         const { city, facilityName, specialization, name, minFee, maxFee, minRating,date} = req.query;
          const query = {veriified:true};
 
     if (city)         query.city         = new RegExp(city, 'i');
@@ -212,6 +213,13 @@ exports.findDoctor = async (req,res,next)=>{
       if (maxFee) query.consultationFee.$lte = Number(maxFee);
     }
     if (minRating) query.rating = { $gte: Number(minRating) };
+    if (date) {
+               const bookingDate = normalizeDate(date);   // or new Date(date)
+                   const jsDay = bookingDate.getDay();        // 0=Sun, 1=Mon...
+                   const dayNum = jsDay === 0 ? 7 : jsDay;    // 1=Mon ... 7=Sun
+
+                     query.holidays = { $nin: [dayNum] };
+}
 
     const doctors = await Doctor.find(query).select(
       '-password -holidays -morningCapacity -afternoonCapacity -eveningCapacity'
@@ -229,9 +237,10 @@ exports.findDoctor = async (req,res,next)=>{
 // GET /api/doctor/profile/:id 
 exports.getDoctorProfile = async (req,res,next)=>{
     try{
-        const doctor = await Doctor.findById(req.params.id).select('-password');
+        
+        const doctor = await Doctor.findOne({_id:req.params.id,  verified: true}).select('-password');
         const experiance = await DoctorExperience.find({docID: req.params.id}).sort({startDate:-1});
-        const Document = await DoctorDocument.find({docID: req.params.id,isPublic:true})
+      
 
 
         const today = new Date(); today.setHours(0,0,0,0);
@@ -242,8 +251,9 @@ exports.getDoctorProfile = async (req,res,next)=>{
                 $lt:end
             }
         }).sort({date:1})
+        const feedback = await Booking.find({ docID:req.params.id}).select('feedback rating')
 
-        res.status(200).json({status:'SUCCESS',data:{doctor,experiance,documents,availability}});
+        res.status(200).json({status:'SUCCESS',data:{doctor,experiance,availability,feedback}});
 
     }catch(err){
         next(err);
@@ -365,3 +375,4 @@ exports.getAvailability = async (req,res,next)=>{
         
     }
 }
+
