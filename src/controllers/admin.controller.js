@@ -250,7 +250,21 @@ exports.getAllDoctors = async(req,res,next)=>{
 }
 
 exports.getDoctorDocuments = async(req,res,next)=>{
+  try {
+        const { id } = req.params;
 
+        const documents = await DoctorDocument.find({
+            docID: id
+        });
+
+        res.status(200).json({
+            status: "SUCCESS",
+            data: documents
+        });
+
+    } catch (err) {
+        next(err);
+    }
 }
 
 exports.removeDoctor = async(req,res,next)=>{
