@@ -29,4 +29,7 @@ router.put('/emergency-cancel', restrictTo('DOCTOR'),verifedDoctor, ctrl.emergen
 
 router.get('/patient-report-bookings', restrictTo('DOCTOR'),verifedDoctor, ctrl.getPatientBookingsForDoctor);
 
+
+router.get('/agora-token', ctrl.getAgoraToken);
+
 module.exports = router;

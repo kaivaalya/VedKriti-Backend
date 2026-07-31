@@ -517,3 +517,59 @@ exports.updateCapacity = async (req,res,next)=>{
     }
 
 };
+
+
+
+
+// GET /api/booking/agora-token?bookingId=<id>
+
+exports.getAgoraToken = async (req, res, next) => {
+  try {
+    const { bookingId } = req.query;
+    if (!bookingId) return next(new AppError('bookingId query param is required.', 400));
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) return next(new AppError('Booking not found.', 404));
+
+   
+    if (booking.consultationType !== 'ONLINE') {
+      return next(new AppError('Agora token is only available for ONLINE consultations.', 400));
+    }
+
+    
+    const callerId = req.user.id.toString();
+    const isDoctor  = booking.docID.toString() === callerId;
+    const isPatient = booking.patID.toString() === callerId;
+
+    if (!isDoctor && !isPatient) {
+      return next(new AppError('You are not authorised to join this consultation.', 403));
+    }
+
+   
+    if (!['CONFIRMED', 'CONSULTING'].includes(booking.status)) {
+      return next(new AppError('Consultation is not active. Status must be CONFIRMED or CONSULTING.', 400));
+    }
+
+  
+    const channelName = `vedkriti_${bookingId}`;
+
+    // Doctor = uid 1, Patient = uid 2
+    const uid = isDoctor ? 1 : 2;
+
+    const expirySeconds = 3600; // 1 hour
+    const token = generateAgoraToken(channelName, uid, expirySeconds);
+
+    res.status(200).json({
+      status: 'SUCCESS',
+      data: {
+        channelName,
+        token,
+        uid,
+        appId: process.env.AGORA_APP_ID,
+        expirySeconds,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
