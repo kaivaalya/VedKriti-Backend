@@ -264,19 +264,45 @@ exports.getDoctorProfile = async (req,res,next)=>{
 }
 
 // POST /api/doctor/addexperience
-exports.addExperience = async (req,res,next)=>{
-    try{
-        const {facilityName, designation, startDate, endDate, isCurrent}=req.body
-        const exp = await DoctorExperiance.create({
-            docID:req.user.id,facilityName, designation, startDate, endDate, isCurrent
-        });
+exports.addExperience = async (req, res, next) => {
+    try {
+        const { experiences } = req.body;
 
-        res.status(201).json({status:'SUCCESS',data:exp})
+        if (!Array.isArray(experiences) || experiences.length === 0) {
+            return res.status(400).json({
+                status: "FAIL",
+                message: "experiences must be a non-empty array"
+            });
+        }
+
+        const isValid = experiences.every(
+            (e) => e.facilityName && e.designation && e.startDate
+        );
+        if (!isValid) {
+            return res.status(400).json({
+                status: "FAIL",
+                message: "facilityName, designation, and startDate are required for every experience"
+            });
+        }
+
+        const docsToInsert = experiences.map(
+            ({ facilityName, designation, startDate, endDate, isCurrent }) => ({
+                docID: req.user.id,
+                facilityName,
+                designation,
+                startDate,
+                endDate: isCurrent ? null : endDate,
+                isCurrent: !!isCurrent
+            })
+        );
+
+        const exp = await DoctorExperiance.insertMany(docsToInsert);
+
+        res.status(201).json({ status: "SUCCESS", data: exp });
+    } catch (err) {
+        next(err);
     }
-    catch(err){
-        next(err)
-    }
-}
+};
 
 // GET /api/doctor/getexperience 
 
@@ -305,7 +331,7 @@ catch(err){
 //POST /api/doctor/upload-document 
 exports.uploadDocument = async(req,res,next)=>{
     try{
-        if(!req.file){
+        if(!req.file){ 
             return next(new AppError('no file attached',400));}
         
         const {title,isPublic}=req.body;
