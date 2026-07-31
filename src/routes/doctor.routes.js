@@ -36,7 +36,7 @@ router.get('/get-about', ctrl.getAbout);
 
 
 router.post('/experience',verifedDoctor,       ctrl.addExperience);
-router.get('/experience',verifedDoctor,        ctrl.getExperience);
+router.get('/getexperience',verifedDoctor,        ctrl.getExperience);
 router.delete('/experience/:expId',verifedDoctor, ctrl.deleteExperience);
 
 
