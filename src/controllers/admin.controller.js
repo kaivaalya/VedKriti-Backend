@@ -2,6 +2,7 @@ const Doctor = require("../models/Doctor.model");
 const Patient = require("../models/Patient.model");
 const Admin = require("../models/Admin.model");
 const AppError = require("../utils/AppError");
+const DoctorDocument = require("../models/DoctorDocument.model");
 const bcrypt = require("bcryptjs");
 const {
     generateAccessToken,
