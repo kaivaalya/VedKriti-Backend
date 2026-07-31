@@ -21,7 +21,7 @@ const {
 const {
     adminLogin,
     verify,
-    refreshToken,clearCookie
+    refreshToken,clearCookie ,getDoctorDocuments
 } = require("../controllers/admin.controller");
 
 
@@ -34,6 +34,7 @@ router.get("/verify", protect, verify);
 router.post("/refresh-token", refreshToken);
 
 router.get("/dashboard",protect,restrictTo("ADMIN"), getPlatformStats);
+router.get("/doctors/:id/documents",protect,restrictTo("ADMIN"), getDoctorDocuments);
 router.get("/doctors/pending",protect,restrictTo("ADMIN"), getPendingDoctors);
 router.patch("/doctors/:id/verify",protect,restrictTo("ADMIN"), verifyDoctor);
 router.get("/doctors",protect,restrictTo("ADMIN"), getAllDoctors);

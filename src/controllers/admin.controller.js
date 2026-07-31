@@ -2,6 +2,7 @@ const Doctor = require("../models/Doctor.model");
 const Patient = require("../models/Patient.model");
 const Admin = require("../models/Admin.model");
 const AppError = require("../utils/AppError");
+const DoctorDocument = require("../models/DoctorDocument.model");
 const bcrypt = require("bcryptjs");
 const {
     generateAccessToken,
@@ -198,8 +199,8 @@ exports.getPendingDoctors = async(req,res)=>{
 
 
 exports.verifyDoctor = async (req, res, next) => {
+    exports.verifyDoctor = async (req, res, next) => {
     try {
-
         const { id } = req.params;
         const { verified, verificationNote } = req.body;
 
@@ -209,6 +210,7 @@ exports.verifyDoctor = async (req, res, next) => {
             return next(new AppError("Doctor not found.", 404));
         }
 
+ 
         doctor.verified = verified;
 
         if (verificationNote) {
@@ -217,17 +219,77 @@ exports.verifyDoctor = async (req, res, next) => {
 
         await doctor.save();
 
+
+
+        if (verified) {
+
+            await sendMail(
+                doctor.email,
+                "Doctor Account Verified – VEDKRITI",
+                `
+                <div style="font-family:sans-serif;max-width:480px;margin:auto">
+                    <h2 style="color:#16a34a">
+                        Account Verified ✓
+                    </h2>
+
+                    <p>Dear Dr. ${doctor.name},</p>
+
+                    <p>
+                        Your doctor account has been successfully verified.
+                    </p>
+
+                    <p>
+                        You can now access the doctor features of DocApp.
+                    </p>
+
+                    <p>Thank you for joining DocApp.</p>
+                </div>
+                `
+            );
+
+        } else {
+
+            await sendMail(
+                doctor.email,
+                "Doctor Verification Update – VEDKRITI",
+                `
+                <div style="font-family:sans-serif;max-width:480px;margin:auto">
+                    <h2 style="color:red">
+                        Verification Rejected
+                    </h2>
+
+                    <p>Dear Dr. ${doctor.name},</p>
+
+                    <p>
+                        Unfortunately, your doctor verification was not approved.
+                    </p>
+
+                    <p>
+                        <strong>Reason:</strong>
+                        ${verificationNote || "Please review your submitted information."}
+                    </p>
+
+                    <p>
+                        Please update the required information/documents and try again.
+                    </p>
+                </div>
+                `
+            );
+        }
+
+
         res.status(200).json({
             status: "SUCCESS",
             message: verified
-                ? "Doctor verified successfully."
-                : "Doctor verification rejected.",
+                ? "Doctor verified successfully and email sent."
+                : "Doctor verification rejected and email sent.",
             data: doctor
         });
 
     } catch (err) {
         next(err);
     }
+};
 };
 
 
