@@ -261,14 +261,14 @@ exports.getDoctorProfile = async (req,res,next)=>{
 
 
         const today = new Date(); today.setHours(0,0,0,0);
-        const end = new Date(today); end.setDate(today.getDate() +14)
+        const end = new Date(today); end.setDate(today.getDate+14)
         const availability= await DoctorAvailability.find({
             docID:req.params.id, date:{
                 $gte:today,
                 $lt:end
             }
         }).sort({date:1})
-        const feedback = await Booking.find({ docID:req.params.id}).select('feedback rating')
+        const feedback = await Booking.find({ docID:req.params.id}).populate("patID", "name").select("feedback rating patID");
 
         res.status(200).json({status:'SUCCESS',data:{doctor,experiance,availability,feedback}});
 
