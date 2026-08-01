@@ -182,16 +182,23 @@ exports.setAbout = async (req,res,next)=>{
 }
 
 // GET /api/doctor/get-about
-exports.getAbout= (req,res,next)=>{
-    try{
+exports.getAbout = async (req, res, next) => {
+    try {
+        const doctor = await Doctor.findById(req.user.id)
+            .select("designation about photo name");
 
-        const doctor = Doctor.findById(req.user.id).select('designation about photo name')
-        res.status(200).json({ status: 'SUCCESS', data: doctor });
-    }
-    catch(err){
+        if (!doctor) {
+            return next(new AppError("Doctor not found", 404));
+        }
 
+        res.status(200).json({
+            status: "SUCCESS",
+            data: doctor
+        });
+    } catch (err) {
+        next(err);
     }
-}
+};
 
 // GET /api/doctor/find-doctor?city=&facilityName=&specialization=&name=&minFee=&maxFee=&minRating=&date=
 
