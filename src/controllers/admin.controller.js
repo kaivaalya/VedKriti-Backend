@@ -11,7 +11,7 @@ const {
 } = require("../utils/jwt.utils");
 const {
     sendMail
-} = require("../utils/mail.utils");
+} = require("../configs/mailer.config");
 exports.adminLogin = async(req,res,next)=>{
  try {
 
