@@ -254,7 +254,7 @@ exports.getDoctorProfile = async (req,res,next)=>{
 
 
         const today = new Date(); today.setHours(0,0,0,0);
-        const end = new Date(todat); end.setDate(today.getDate+14)
+        const end = new Date(today); end.setDate(today.getDate+14)
         const availability= await DoctorAvailability.find({
             docID:req.params.id, date:{
                 $gte:today,
@@ -418,7 +418,7 @@ exports.getAvailability = async (req,res,next)=>{
         const today = new Date(); today.setHours(0,0,0,0);
         const end =new Date(today); end.setDate(today.getDate()+14);
 
-        const availability = await DoctorAvailability.find({doctID: req.params.id,Date:{
+        const availability = await DoctorAvailability.find({docID: req.params.id,date:{
             $gte: today,
             $lt:end
         }}).sort({date:1})
