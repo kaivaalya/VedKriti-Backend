@@ -299,7 +299,7 @@ exports.addExperience = async (req, res, next) => {
             })
         );
 
-        const exp = await DoctorExperiance.insertMany(docsToInsert);
+        const exp = await DoctorExperience.insertMany(docsToInsert);
 
         res.status(201).json({ status: "SUCCESS", data: exp });
     } catch (err) {
