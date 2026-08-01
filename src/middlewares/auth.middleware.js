@@ -27,13 +27,15 @@ const protect = (req, res, next) => {
     }
 };
 const restrictTo = (...roles) => (req, res, next) => {
-    
-  if (!roles.includes(req.user.role)) {
-    return next(new AppError('You do not have permission to perform this action.', 403));
-  }
-  next();
-};
+    console.log("Allowed:", roles);
+    console.log("User:", req.user);
 
+    if (!roles.includes(req.user.role)) {
+        return next(new AppError("You do not have permission to perform this action.", 403));
+    }
+
+    next();
+};
 
 const verifedDoctor =async  (req,res,next)=>{
 
