@@ -340,32 +340,52 @@ catch(err){
 
 
 //POST /api/doctor/upload-document 
-exports.uploadDocument = async(req,res,next)=>{
-    try{
-        if(!req.file){ 
-            return next(new AppError('no file attached',400));}
-        
-        const {title,isPublic}=req.body;
-        if(!title) return next(AppError('document title is required',400));
-        const result = await uploadToCloudinary(req.file.buffer,'doctor_document','auto');
+exports.uploadDocument = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return next(new AppError('No file attached.', 400));
+        }
+
+        const { title, isPublic } = req.body;
+
+        if (!title) {
+            return next(new AppError('Document title is required.', 400));
+        }
+
+        let fileType;
+
+        if (req.file.mimetype.startsWith('image/')) {
+            fileType = 'image';
+        } else if (req.file.mimetype === 'application/pdf') {
+            fileType = 'pdf';
+        } else {
+            return next(new AppError('Only images and PDFs are allowed.', 400));
+        }
+
+        const result = await uploadToCloudinary(
+            req.file.buffer,
+            'doctor_document',
+            'auto'
+        );
 
         const doc = await DoctorDocument.create({
             docID: req.user.id,
             title,
-            fileurl:result.secure_url,
-            publicId:result.publicId,
-            fileType: req.file.mimetype.startsWith('image')?'image':'pdf',
-            isPublic:isPublic==='true',
-
+            fileurl: result.secure_url,
+            publicId: result.publicId,
+            fileType,
+            isPublic: isPublic === 'true'
         });
 
-        res.status(201).json({Status:'SUCCESS',data:doc});
+        res.status(201).json({
+            status: 'SUCCESS',
+            data: doc
+        });
 
-
-    }catch(err){
-        next(err)
+    } catch (err) {
+        next(err);
     }
-}
+};
 
 // GET /api/doctor/documents
 exports.getDocuments = async (req,res,next)=>{
