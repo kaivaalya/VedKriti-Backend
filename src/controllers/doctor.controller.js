@@ -89,7 +89,7 @@ exports.getPracticeLocation = async (req, res, next) => {
 }
 
 // PUT /api/doctor/set-education
-exports.setEducation = async () => {
+exports.setEducation = async (req, res, next) => {
     console.log("Entered setOperationalDetails");
     console.log("Body:", req.body);
 
