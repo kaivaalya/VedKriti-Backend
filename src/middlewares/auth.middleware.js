@@ -16,6 +16,7 @@ const protect = (req, res, next) => {
         const decoded = verifyAccessToken(accessToken);
 
         req.user = decoded;
+        console.log(decoded);
 
         next();
     } catch (err) {
@@ -31,6 +32,7 @@ const protect = (req, res, next) => {
     }
 };
 const restrictTo = (...roles) => (req, res, next) => {
+    
   if (!roles.includes(req.user.role)) {
     return next(new AppError('You do not have permission to perform this action.', 403));
   }
