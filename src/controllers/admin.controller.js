@@ -198,7 +198,7 @@ exports.getPendingDoctors = async(req,res)=>{
 }
 
 
-exports.verifyDoctor = async (req, res, next) => {
+
     exports.verifyDoctor = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -289,7 +289,6 @@ exports.verifyDoctor = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-};
 };
 
 
