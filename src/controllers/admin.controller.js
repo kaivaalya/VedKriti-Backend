@@ -8,6 +8,9 @@ const {
     generateAccessToken,
     generateRefreshToken,
 } = require("../utils/jwt.utils");
+const {
+    sendMail
+} = require("../utils/mail.utils");
 exports.adminLogin = async(req,res,next)=>{
  try {
 
@@ -111,7 +114,7 @@ try {
         
         const accessToken = generateAccessToken({
             id: admin._id,
-            role: "admin"
+            role: "ADMIN"
         });
 
       
@@ -199,10 +202,15 @@ exports.getPendingDoctors = async(req,res)=>{
 
 
 
-    exports.verifyDoctor = async (req, res, next) => {
+   exports.verifyDoctor = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { verified, verificationNote } = req.body;
+        let { verified, verificationNote } = req.body;
+
+        // Convert string to boolean if needed
+        if (typeof verified === "string") {
+            verified = verified.toLowerCase() === "true";
+        }
 
         const doctor = await Doctor.findById(id);
 
@@ -210,82 +218,84 @@ exports.getPendingDoctors = async(req,res)=>{
             return next(new AppError("Doctor not found.", 404));
         }
 
- 
         doctor.verified = verified;
 
-        if (verificationNote) {
-            doctor.verificationNote = verificationNote;
+        // Save verification note only when rejected
+        if (!verified) {
+            doctor.verificationNote =
+                verificationNote || "Please review your submitted information.";
+        } else {
+            doctor.verificationNote = "";
         }
 
         await doctor.save();
 
+        try {
+            if (verified) {
+                await sendMail(
+                    doctor.email,
+                    "Doctor Account Verified VEDKRITI",
+                    `
+                    <div style="font-family:sans-serif;max-width:480px;margin:auto">
+                        <h2 style="color:#16a34a">
+                            Account Verified ✓
+                        </h2>
 
+                        <p>Dear Dr. ${doctor.name},</p>
 
-        if (verified) {
+                        <p>
+                            Congratulations! Your doctor account has been successfully verified.
+                        </p>
 
-            await sendMail(
-                doctor.email,
-                "Doctor Account Verified – VEDKRITI",
-                `
-                <div style="font-family:sans-serif;max-width:480px;margin:auto">
-                    <h2 style="color:#16a34a">
-                        Account Verified ✓
-                    </h2>
+                        <p>
+                            You can now log in and start using all doctor features on <strong>VEDKRITI</strong>.
+                        </p>
 
-                    <p>Dear Dr. ${doctor.name},</p>
+                        <p>Thank you for joining VEDKRITI.</p>
+                    </div>
+                    `
+                );
+            } else {
+                await sendMail(
+                    doctor.email,
+                    "Doctor Verification Update – VEDKRITI",
+                    `
+                    <div style="font-family:sans-serif;max-width:480px;margin:auto">
+                        <h2 style="color:#dc2626">
+                            Verification Rejected
+                        </h2>
 
-                    <p>
-                        Your doctor account has been successfully verified.
-                    </p>
+                        <p>Dear Dr. ${doctor.name},</p>
 
-                    <p>
-                        You can now access the doctor features of DocApp.
-                    </p>
+                        <p>
+                            Unfortunately, your doctor verification request was not approved.
+                        </p>
 
-                    <p>Thank you for joining DocApp.</p>
-                </div>
-                `
-            );
+                        <p>
+                            <strong>Reason:</strong>
+                            ${doctor.verificationNote}
+                        </p>
 
-        } else {
+                        <p>
+                            Please update the required information/documents and submit them again.
+                        </p>
 
-            await sendMail(
-                doctor.email,
-                "Doctor Verification Update – VEDKRITI",
-                `
-                <div style="font-family:sans-serif;max-width:480px;margin:auto">
-                    <h2 style="color:red">
-                        Verification Rejected
-                    </h2>
-
-                    <p>Dear Dr. ${doctor.name},</p>
-
-                    <p>
-                        Unfortunately, your doctor verification was not approved.
-                    </p>
-
-                    <p>
-                        <strong>Reason:</strong>
-                        ${verificationNote || "Please review your submitted information."}
-                    </p>
-
-                    <p>
-                        Please update the required information/documents and try again.
-                    </p>
-                </div>
-                `
-            );
+                        <p>Thank you,<br>VEDKRITI Team</p>
+                    </div>
+                    `
+                );
+            }
+        } catch (mailError) {
+            console.error("Email sending failed:", mailError); // Verification is already saved, so don't fail the API because of email
         }
 
-
-        res.status(200).json({
+        return res.status(200).json({
             status: "SUCCESS",
             message: verified
-                ? "Doctor verified successfully and email sent."
-                : "Doctor verification rejected and email sent.",
-            data: doctor
+                ? "Doctor verified successfully."
+                : "Doctor verification rejected.",
+            data: doctor,
         });
-
     } catch (err) {
         next(err);
     }
