@@ -20,13 +20,13 @@ const regenrateAvailability = async (docID, morningCap, afternoonCap, eveningCap
         const date = new Date(today)
         date.setDate(date.getDate() + i);
 
-        const jsDay = date.getDay;
+        const jsDay = date.getDay();
         const dayNum = jsDay === 0 ? 7 : jsDay;
         const isHoliday = holidayDays.includes(dayNum);
 
         ops.push({
             updateOne: {
-                filter: { doctID, date },
+                filter: { docID, date },
                 update: {
                     $set: {
                         morningCapacity: isHoliday ? 0 : morningCap,
