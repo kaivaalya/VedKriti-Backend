@@ -151,7 +151,7 @@ exports.getOperationalDetails = async (req,res,next)=>{
     try{
 
     const doctor = await Doctor.findById(req.user.id).select('morningCapacity afternoonCapacity eveningCapacity holidays');
-    res.status(200)({ status: 'SUCCESS', data: doctor})
+    res.status(200).json({ status: 'SUCCESS', data: doctor})
     }
     catch(err){
         next(err)
