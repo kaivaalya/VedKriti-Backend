@@ -13,7 +13,7 @@ const regenrateAvailability = async (docID, morningCap, afternoonCap, eveningCap
     const today = new Date();
     today.setHours(0, 0, 0, 0)
 
-    const holidayDays = holidays.split('').map(Number);
+  const holidayDays = String(holidays || "").split("").map(Number);
 
     const ops = [];
     for (let i = 0; i < 14; i++) {
