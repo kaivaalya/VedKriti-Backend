@@ -8,6 +8,13 @@ const AppError = require('../utils/AppError');
 const Admin = require('../models/Admin.model');
 
 
+const normalizeDate = (d)=>{
+    const date = new Date(d);
+    date.setHours(0,0,0,0);
+    return date;
+}
+
+
 const regenrateAvailability = async (docID, morningCap, afternoonCap, eveningCap, holidays) => {
 
     const today = new Date();
