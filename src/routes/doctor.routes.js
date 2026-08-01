@@ -35,9 +35,15 @@ router.put('/set-about', uploadMiddleware('photo', 5), ctrl.setAbout);
 router.get('/get-about', ctrl.getAbout);
 
 
+<<<<<<< HEAD
 router.post('/addexperience', ctrl.addExperience);
 router.get('/getexperience', ctrl.getExperience);
 router.delete('/experience/:expId',verifedDoctor, ctrl.deleteExperience);
+=======
+router.post('/addexperience',       ctrl.addExperience);
+router.get('/getexperience',        ctrl.getExperience);
+router.delete('/experience/:expId'r, ctrl.deleteExperience);
+>>>>>>> 058153b3627153838c7c4b5d880847968de59c75
 
 
 router.post('/upload-document',    uploadMiddleware('document', 10), ctrl.uploadDocument);
