@@ -40,7 +40,7 @@ router.get('/getexperience', ctrl.getExperience);
 router.delete('/experience/:expId',verifedDoctor, ctrl.deleteExperience);
 
 
-router.post('/upload-document',    uploadMiddleware('document', 10), ctrl.uploadDocument);
+router.post('/upload-document',    uploadMiddleware('file', 10), ctrl.uploadDocument);
 router.get('/documents',           ctrl.getDocuments);
 router.delete('/document/:docId',  ctrl.deleteDocument);
 
