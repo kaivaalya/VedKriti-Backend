@@ -35,13 +35,13 @@ router.put('/set-about', uploadMiddleware('photo', 5), ctrl.setAbout);
 router.get('/get-about', ctrl.getAbout);
 
 
-router.post('/addexperience',       ctrl.addExperience);
-router.get('/getexperience',        ctrl.getExperience);
+router.post('/addexperience', ctrl.addExperience);
+router.get('/getexperience', ctrl.getExperience);
 router.delete('/experience/:expId',verifedDoctor, ctrl.deleteExperience);
 
 
-router.post('/upload-document',verifedDoctor,    uploadMiddleware('document', 10), ctrl.uploadDocument);
-router.get('/documents',verifedDoctor,           ctrl.getDocuments);
-router.delete('/document/:docId',verifedDoctor,  ctrl.deleteDocument);
+router.post('/upload-document',    uploadMiddleware('document', 10), ctrl.uploadDocument);
+router.get('/documents',           ctrl.getDocuments);
+router.delete('/document/:docId',  ctrl.deleteDocument);
 
 module.exports = router;
