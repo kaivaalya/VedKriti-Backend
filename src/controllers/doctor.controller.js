@@ -371,8 +371,8 @@ exports.uploadDocument = async (req, res, next) => {
         const doc = await DoctorDocument.create({
             docID: req.user.id,
             title,
-            fileurl: result.secure_url,
-            publicId: result.publicId,
+            fileUrl: result.secure_url,
+            publicId: result.public_id,
             fileType,
             isPublic: isPublic === 'true'
         });
