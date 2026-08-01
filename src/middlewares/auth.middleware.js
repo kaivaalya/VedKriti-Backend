@@ -16,7 +16,7 @@ const protect = (req, res, next) => {
         const decoded = verifyAccessToken(accessToken);
 
         req.user = decoded;
-        console.log(decoded);
+       
         next();
     } catch (err) {
         if (err.name === "TokenExpiredError") {
@@ -47,7 +47,7 @@ const verifedDoctor =async  (req,res,next)=>{
     return next(new AppError("Doctor not verified",403));
   }
 
-console.log("hello");
+
   next()
 }
 
