@@ -205,7 +205,7 @@ exports.getAbout = async (req, res, next) => {
 exports.findDoctor = async (req,res,next)=>{
     try{
          const { city, facilityName, specialization, name, minFee, maxFee, minRating,date} = req.query;
-         const query = {veriified:true};
+         const query = {verified:true};
 
     if (city)         query.city         = new RegExp(city, 'i');
     if (facilityName) query.facilityName = new RegExp(facilityName, 'i');
