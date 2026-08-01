@@ -9,6 +9,7 @@ const {
   sendBookingConfirmationEmail,
   sendCancellationEmail,
 } = require('../configs/mailer.config');
+const generateAgoraToken = require("../utils/agora.utils");
 const AppError = require('../utils/AppError');
 
 
@@ -80,7 +81,7 @@ exports.bookDoctor = async (req,res,next)=>{
        const avail = await DoctorAvailability.findOneAndUpdate({
         docID,
         date:bookingDate,
-        [booking]:{$lt: mongoose.Types.Decimal128.fromString(`${doctor[capacity]}`)},
+        [bookings]:{$lt: mongoose.Types.Decimal128.fromString(`${doctor[capacity]}`)},
 
        },
     {
