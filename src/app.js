@@ -16,6 +16,7 @@ const allowedOrigins = ["http://localhost:5173", "https://ved-kriti-frontend.ver
 
 app.use(cors({
   origin: function (origin, callback) {
+    console.log("Incoming origin:", origin); // 👈 add this
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
