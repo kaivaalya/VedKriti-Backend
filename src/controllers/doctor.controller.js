@@ -106,7 +106,7 @@ exports.setEducation = async () => {
 }
 // GET /api/doctor/get-education
 exports.getEducation = async (req, res, next) => {
-     console.log("addExperience controller reached");
+    
     try {
         const doctor = await Doctor.findById(req.user.id).select('institute degreeType degreeName fieldOfStudy specialization1 specialization2 specialization3');
         res.status(200).json({
