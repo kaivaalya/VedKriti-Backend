@@ -16,7 +16,7 @@ const protect = (req, res, next) => {
         const decoded = verifyAccessToken(accessToken);
 
         req.user = decoded;
-        
+        console.log(decoded);
         next();
     } catch (err) {
         if (err.name === "TokenExpiredError") {
