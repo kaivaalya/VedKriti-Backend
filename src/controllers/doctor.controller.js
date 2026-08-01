@@ -90,6 +90,9 @@ exports.getPracticeLocation = async (req, res, next) => {
 
 // PUT /api/doctor/set-education
 exports.setEducation = async () => {
+    console.log("Entered setOperationalDetails");
+    console.log("Body:", req.body);
+
     try {
 
         const { institute, degreeType, degreeName, fieldOfStudy, specialization1, specialization2, specialization3 } = req.body;
