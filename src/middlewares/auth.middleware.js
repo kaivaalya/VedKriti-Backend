@@ -5,9 +5,7 @@ const Doctor = require("../models/Doctor.model");
 
 
 const protect = (req, res, next) => {
-    console.log("===== NEW AUTH MIDDLEWARE =====");
-    console.log("Method:", req.method);
-    console.log("Authorization:", req.headers.authorization);
+
 
     try {
         const authHeader = req.headers.authorization;
@@ -27,8 +25,7 @@ const protect = (req, res, next) => {
     }
 };
 const restrictTo = (...roles) => (req, res, next) => {
-    console.log("Allowed:", roles);
-    console.log("User:", req.user);
+   
 
     if (!roles.includes(req.user.role)) {
         return next(new AppError("You do not have permission to perform this action.", 403));
