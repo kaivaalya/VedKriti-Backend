@@ -29,19 +29,25 @@ const uploadMiddleware = (fieldName="file",maxSizeMB=10)=> multer({
     }
 }).single(fieldName);
 
+const uploadToCloudinary = (
+    buffer,
+    folder = "reports",
+    resourceType = "auto"
+) =>
+    new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                folder,
+                resource_type: resourceType,
+            },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve(result);
+            }
+        );
 
-const uploadToCloudinary=(buffer,folder="reports",resorceTYpe="auto")=>
-    new promise((resolve,reject)=>{
-       const uploadStream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: resourceType },
-      (error, result) => {
-        if (error) return reject(error);
-        resolve(result);
-      }
-    );
-    streamifier.createReadStream(buffer).pipe(uploadStream);
-
-})
+        streamifier.createReadStream(buffer).pipe(uploadStream);
+    });
 
 
 const deleteFromCloudinary = (publicId, resourceType = 'image') =>
