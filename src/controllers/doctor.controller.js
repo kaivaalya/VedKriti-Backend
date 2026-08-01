@@ -311,6 +311,7 @@ exports.addExperience = async (req, res, next) => {
 
 exports.getExperience = async (req,res,next)=>{
     try{
+        console.log("req.user.id:", req.user.id);
         const exps = await DoctorExperience.find({docID:req.user.id}).sort({startDate:-1});
         res.status(200).json({status:'SUCCESS',data:exps});
     }catch(err){next(err)}
