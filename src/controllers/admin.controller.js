@@ -7,6 +7,7 @@ const bcrypt = require("bcryptjs");
 const {
     generateAccessToken,
     generateRefreshToken,
+    verifyRefreshToken
 } = require("../utils/jwt.utils");
 const {
     sendMail
@@ -132,7 +133,11 @@ try {
 exports.logout = async(req,res,next)=>{
  try {
 
-        res.clearCookie("refreshToken");
+        res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+});
 
         res.status(200).json({
             status: "SUCCESS",
@@ -146,19 +151,23 @@ exports.logout = async(req,res,next)=>{
 
 exports.getPlatformStats = async (req, res, next) => {
     try {
-
         const totalDoctors = await Doctor.countDocuments();
 
         const verifiedDoctors = await Doctor.countDocuments({
-            verified: true
+            verified: true,
         });
 
         const pendingDoctors = await Doctor.countDocuments({
-            verified: false
+            verified: false,
         });
 
-  
         const totalPatients = await Patient.countDocuments();
+
+        const totalBookings = await Booking.countDocuments();
+
+        const completedConsultations = await Booking.countDocuments({
+            status: "COMPLETED",
+        });
 
         res.status(200).json({
             status: "SUCCESS",
@@ -167,17 +176,16 @@ exports.getPlatformStats = async (req, res, next) => {
                 verifiedDoctors,
                 pendingDoctors,
                 totalPatients,
-                totalBookings: 0,
-                completedConsultations: 0
-            }
+                totalBookings,
+                completedConsultations,
+            },
         });
-
     } catch (err) {
         next(err);
     }
 };
 
-exports.getPendingDoctors = async(req,res)=>{
+exports.getPendingDoctors = async(req,res,next)=>{
     try{
       const PendingDoctors=await Doctor.find(
         {
@@ -366,7 +374,7 @@ const patient=await Patient.find({},
 )
 res.status(200).json({
     status:"success",
-    data:"patient"
+    data:patient
 
 })
     }catch(err)
