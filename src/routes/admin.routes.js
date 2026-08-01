@@ -33,7 +33,7 @@ router.post("/login", adminLogin);
 router.get("/verify", protect, verify);
 router.post("/refresh-token", refreshToken);
 
-router.get("/statistics",protect,restrictTo("ADMIN"), getPlatformStats);
+router.get("/dashboard",protect,restrictTo("ADMIN"), getPlatformStats);
 router.get("/doctors/:id/documents",protect,restrictTo("ADMIN"), getDoctorDocuments);
 router.get("/doctors/pending",protect,restrictTo("ADMIN"), getPendingDoctors);
 router.patch("/doctors/:id/verify",protect,restrictTo("ADMIN"), verifyDoctor);
