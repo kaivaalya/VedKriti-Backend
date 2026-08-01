@@ -163,7 +163,7 @@ exports.getOperationalDetails = async (req,res,next)=>{
 exports.setAbout = async (req,res,next)=>{
     try{
 
-        const {designation,description}=req.body;
+        const {designation,about}=req.body;
         const docID = req.user.id;
         const updateData = {designation,about};
 
