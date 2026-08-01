@@ -9,7 +9,7 @@ const AppError = require('../utils/AppError');
 
 // GET /api/patient/profile
 
-exports.getProfile= async (req,resizeBy,next)=>{
+exports.getProfile= async (req,res,next)=>{
 
     try {
         const patient = await Patient.findById(req.user.id).select('-passwors');
@@ -40,7 +40,7 @@ exports.updateProfile =async (req,res,next)=>{
 
 
 
-        const patient = await patient.findByIdAndUpdate(req.user.id,updateData,{returnDocument:true }).select('-password')
+        const patient = await Patient.findByIdAndUpdate(req.user.id,updateData,{returnDocument:true }).select('-password')
         
         res.status(200).json({ status: 'SUCCESS', data: patient });
     } catch (err) {
