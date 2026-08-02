@@ -45,18 +45,27 @@ exports.bookDoctor = async (req,res,next)=>{
         
         const docID=req.query.id;
         const consultationType = (req.query.consultationType||'').toUpperCase();
+
+      if (!["ONLINE", "OFFLINE"].includes(consultationType)) {
+    throw
+        new AppError(
+            "consultationType must be ONLINE or OFFLINE.",
+            400
+        )
+    
+}
         const patID=req.user.id;
         const {date , slot }=req.body;
 
 
 
         if(!docID||!date ||!slot){
-            return next(new AppError('docID (query), date and slot (body) are required.',400));
+            throw new AppError('docID (query), date and slot (body) are required.',400)
 
         }
         const slotUpper = slot.toUpperCase();
         if(!['MORNING','AFTERNOON','EVENING'].includes(slotUpper)){
-            return next(new AppError('slot must be MORNING, AFTERNOON or EVENING.', 400));
+          throw new AppError('slot must be MORNING, AFTERNOON or EVENING.', 400)
         }
 
         const bookingDate = normalizeDate(date);
@@ -64,18 +73,18 @@ exports.bookDoctor = async (req,res,next)=>{
         const today = normalizeDate(new Date());
          const maxDate = new Date(today); maxDate.setDate(today.getDate() + 14);
 
-          if (bookingDate < today)    return next(new AppError('Cannot book past dates.', 400));
-    if (bookingDate > maxDate)  return next(new AppError('Bookings are limited to 14 days in advance.', 400));
+          if (bookingDate < today)    throw new AppError('Cannot book past dates.', 400)
+    if (bookingDate > maxDate) throw new AppError('Bookings are limited to 14 days in advance.', 400)
 
 
     const doctor = await Doctor.findById(docID).session(session);
-       if (!doctor || !doctor.verified) return next(new AppError('Doctor not found or not verified.', 404));
+       if (!doctor || !doctor.verified) throw new AppError('Doctor not found or not verified.', 404)
        
     
        const jsDay = bookingDate.getDay();
        const DayNum = jsDay === 0 ? 7:jsDay;
        if((doctor.holidays||'').includes(DayNum)){
-        return next(new AppError('Doctor not found or not verified.', 404))
+      throw new AppError('Doctor is not available on this day.', 400)
        }
 
        const duplicate = await Booking.findOne({
@@ -85,7 +94,7 @@ exports.bookDoctor = async (req,res,next)=>{
       status: { $in: ['PENDING', 'CONFIRMED', 'CONSULTING'] },
        }).session(session);
 
-       if(duplicate) return next(new AppError('You already have a booking for thid slot',409));
+       if(duplicate) throw new AppError('You already have a booking for thid slot',409)
 
 
      const { capacity, bookings, nextToken } = slotFields[slotUpper];
@@ -170,7 +179,7 @@ const [booking] = await Booking.create(
     await Doctor.findByIdAndUpdate(docID, { $inc: { patientCount: 1 } }, { session });
 
 await session.commitTransaction();
-    session.endSession();
+   
 
      const patient = await Patient.findById(patID).select('email name');
     sendBookingConfirmationEmail(
@@ -189,10 +198,13 @@ await session.commitTransaction();
 
     } catch (err) {
         await session.abortTransaction();
-    session.endSession();
+    
         next(err)
         
     }
+  finally{
+    session.endSession();
+}
 }
 
 
