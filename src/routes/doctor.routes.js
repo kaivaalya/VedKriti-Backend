@@ -9,7 +9,7 @@ const { uploadMiddleware }    = require('../configs/cloudinary.config');
 router.get('/find-doctor', ctrl.findDoctor);
 
 router.get('/profile/:id', ctrl.getDoctorProfile);
-router.get("/profile-status", ctrl.profileStatus);
+
 router.get('/availability/:id', ctrl.getAvailability);
 
 
@@ -47,5 +47,5 @@ router.post(
 );
 router.get('/documents',           ctrl.getDocuments);
 router.delete('/document/:docId',  ctrl.deleteDocument);
-router.get("/profile-status",protect, restrictTo('DOCTOR'), ctrl.profileStatus);
+router.get("/profile-status", ctrl.profileStatus);
 module.exports = router;
