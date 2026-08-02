@@ -443,6 +443,7 @@ exports.getAvailability = async (req,res,next)=>{
 
 exports.profileStatus = async (req, res, next) => {
     try {
+        console.log(req.user);
         const doctor = await Doctor.findById(req.user.id).select("verified");
 
         if (!doctor) {
