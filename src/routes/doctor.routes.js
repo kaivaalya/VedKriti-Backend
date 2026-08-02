@@ -13,10 +13,11 @@ router.get("/profile-status", ctrl.profileStatus);
 router.get('/availability/:id', ctrl.getAvailability);
 
 
-router.get("/profile-status", ctrl.profileStatus);
+
 
 
 router.use(protect, restrictTo('DOCTOR'));
+router.get("/profile-status", ctrl.profileStatus);
 
 
 router.put('/set-practiceLocation', ctrl.setPracticeLocation);
