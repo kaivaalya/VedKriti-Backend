@@ -196,9 +196,10 @@ await session.commitTransaction();
 
 
     } catch (err) {
+         if (session.inTransaction()) {
         await session.abortTransaction();
-    
-        next(err)
+    }
+    next(err);
         
     }
   finally{
