@@ -17,7 +17,7 @@ router.get('/availability/:id', ctrl.getAvailability);
 
 
 router.use(protect, restrictTo('DOCTOR'));
-router.get("/profile-status", ctrl.profileStatus);
+
 
 
 router.put('/set-practiceLocation', ctrl.setPracticeLocation);
@@ -47,5 +47,5 @@ router.post(
 );
 router.get('/documents',           ctrl.getDocuments);
 router.delete('/document/:docId',  ctrl.deleteDocument);
-
+router.get("/profile-status", ctrl.profileStatus);
 module.exports = router;
