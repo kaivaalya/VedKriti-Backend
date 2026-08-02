@@ -17,6 +17,19 @@ const doctorAvailabilitySchema = new mongoose.Schema(
     morningBookings:   { type: Number, default: 0 },
     afternoonBookings: { type: Number, default: 0 },
     eveningBookings:   { type: Number, default: 0 },
+
+    morningNextToken: {
+    type: Number,
+    default: 1
+},
+afternoonNextToken: {
+    type: Number,
+    default: 1
+},
+eveningNextToken: {
+    type: Number,
+    default: 1
+},
   },
   { timestamps: true }
 );
