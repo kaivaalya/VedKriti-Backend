@@ -212,18 +212,43 @@ exports.getPendingDoctors = async(req,res,next)=>{
 
 
    exports.verifyDoctor = async (req, res, next) => {
-   try {
+  // Accept both boolean and string values
+if (typeof verified === "string") {
+    const value = verified.trim().toLowerCase();
+
+    if (value === "true") {
+        verified = true;
+    } else if (value === "false") {
+        verified = false;
+    } else {
+        return next(
+            new AppError(
+                "Invalid value for 'verified'. Use true or false.",
+                400
+            )
+        );
+    }
+} else if (typeof verified !== "boolean") {
+    return next(
+        new AppError(
+            "The 'verified' field must be a boolean or a string ('true'/'false').",
+            400
+        )
+    );
+}
+
+try {
     if (verified) {
         await sendMail(
             doctor.email,
             "🎉 Your VEDKRITI Doctor Account Has Been Verified",
             `
             <div style="margin:0;padding:40px;background:#f4f7fb;font-family:Arial,sans-serif;">
-                <div style="max-width:600px;margin:auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,0.1);">
+                <div style="max-width:600px;margin:auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,.1);">
 
                     <div style="background:linear-gradient(135deg,#2563eb,#1e40af);padding:30px;text-align:center;">
-                        <h1 style="color:#fff;margin:0;">VEDKRITI</h1>
-                        <p style="color:#dbeafe;margin-top:8px;">Doctor Verification</p>
+                        <h1 style="margin:0;color:#fff;">VEDKRITI</h1>
+                        <p style="margin-top:8px;color:#dbeafe;">Doctor Verification</p>
                     </div>
 
                     <div style="padding:35px;">
@@ -232,7 +257,7 @@ exports.getPendingDoctors = async(req,res,next)=>{
                         </h2>
 
                         <p style="font-size:16px;color:#444;">
-                            Your doctor account has been successfully verified.
+                            We are pleased to inform you that your doctor account has been successfully verified.
                         </p>
 
                         <div style="background:#ecfdf5;border-left:5px solid #16a34a;padding:18px;border-radius:8px;margin:25px 0;">
@@ -240,20 +265,17 @@ exports.getPendingDoctors = async(req,res,next)=>{
                         </div>
 
                         <p style="color:#555;">
-                            You can now log in and start accepting appointments through
-                            <strong>VEDKRITI</strong>.
+                            You can now log in to your account and start managing appointments on <strong>VEDKRITI</strong>.
                         </p>
 
                         <div style="text-align:center;margin:35px 0;">
                             <a href="https://yourwebsite.com/login"
-                               style="background:#2563eb;color:#fff;padding:14px 30px;
-                                      text-decoration:none;border-radius:8px;
-                                      display:inline-block;font-weight:bold;">
+                               style="background:#2563eb;color:#fff;text-decoration:none;padding:14px 30px;border-radius:8px;display:inline-block;font-weight:bold;">
                                 Login Now
                             </a>
                         </div>
 
-                        <p style="font-size:14px;color:#777;">
+                        <p style="font-size:14px;color:#666;">
                             Thank you for joining the VEDKRITI healthcare network.
                         </p>
                     </div>
@@ -272,17 +294,17 @@ exports.getPendingDoctors = async(req,res,next)=>{
             "VEDKRITI Doctor Verification Update",
             `
             <div style="margin:0;padding:40px;background:#f4f7fb;font-family:Arial,sans-serif;">
-                <div style="max-width:600px;margin:auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,0.1);">
+                <div style="max-width:600px;margin:auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,.1);">
 
                     <div style="background:linear-gradient(135deg,#dc2626,#991b1b);padding:30px;text-align:center;">
-                        <h1 style="color:#fff;margin:0;">VEDKRITI</h1>
-                        <p style="color:#fecaca;margin-top:8px;">Doctor Verification</p>
+                        <h1 style="margin:0;color:#fff;">VEDKRITI</h1>
+                        <p style="margin-top:8px;color:#fecaca;">Doctor Verification</p>
                     </div>
 
                     <div style="padding:35px;">
 
                         <h2 style="color:#dc2626;margin-top:0;">
-                            Verification Not Approved
+                            ❌ Verification Not Approved
                         </h2>
 
                         <p style="font-size:16px;color:#444;">
@@ -290,7 +312,7 @@ exports.getPendingDoctors = async(req,res,next)=>{
                         </p>
 
                         <p style="color:#555;">
-                            Unfortunately, your verification request could not be approved at this time.
+                            Unfortunately, your doctor verification request could not be approved at this time.
                         </p>
 
                         <div style="background:#fef2f2;border-left:5px solid #dc2626;padding:18px;border-radius:8px;margin:25px 0;">
@@ -299,17 +321,19 @@ exports.getPendingDoctors = async(req,res,next)=>{
                         </div>
 
                         <p style="color:#555;">
-                            Please update your documents or information and submit your verification request again.
+                            Please review the above reason, update your information or documents, and submit your verification request again.
                         </p>
 
                         <div style="text-align:center;margin:35px 0;">
                             <a href="https://yourwebsite.com"
-                               style="background:#dc2626;color:#fff;padding:14px 30px;
-                                      text-decoration:none;border-radius:8px;
-                                      display:inline-block;font-weight:bold;">
+                               style="background:#dc2626;color:#fff;text-decoration:none;padding:14px 30px;border-radius:8px;display:inline-block;font-weight:bold;">
                                 Update Documents
                             </a>
                         </div>
+
+                        <p style="font-size:14px;color:#666;">
+                            If you believe this is a mistake, please contact the VEDKRITI support team.
+                        </p>
 
                     </div>
 
