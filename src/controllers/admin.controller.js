@@ -212,102 +212,119 @@ exports.getPendingDoctors = async(req,res,next)=>{
 
 
    exports.verifyDoctor = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        let { verified, verificationNote } = req.body;
+   try {
+    if (verified) {
+        await sendMail(
+            doctor.email,
+            "🎉 Your VEDKRITI Doctor Account Has Been Verified",
+            `
+            <div style="margin:0;padding:40px;background:#f4f7fb;font-family:Arial,sans-serif;">
+                <div style="max-width:600px;margin:auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,0.1);">
 
-        // Convert string to boolean if needed
-        if (typeof verified === "string") {
-            verified = verified.toLowerCase() === "true";
-        }
-
-        const doctor = await Doctor.findById(id);
-
-        if (!doctor) {
-            return next(new AppError("Doctor not found.", 404));
-        }
-
-        doctor.verified = verified;
-
-        // Save verification note only when rejected
-        if (!verified) {
-            doctor.verificationNote =
-                verificationNote || "Please review your submitted information.";
-        } else {
-            doctor.verificationNote = "";
-        }
-
-        await doctor.save();
-
-        try {
-            if (verified) {
-                await sendMail(
-                    doctor.email,
-                    "Doctor Account Verified VEDKRITI",
-                    `
-                    <div style="font-family:sans-serif;max-width:480px;margin:auto">
-                        <h2 style="color:#16a34a">
-                            Account Verified ✓
-                        </h2>
-
-                        <p>Dear Dr. ${doctor.name},</p>
-
-                        <p>
-                            Congratulations! Your doctor account has been successfully verified.
-                        </p>
-
-                        <p>
-                            You can now log in and start using all doctor features on <strong>VEDKRITI</strong>.
-                        </p>
-
-                        <p>Thank you for joining VEDKRITI.</p>
+                    <div style="background:linear-gradient(135deg,#2563eb,#1e40af);padding:30px;text-align:center;">
+                        <h1 style="color:#fff;margin:0;">VEDKRITI</h1>
+                        <p style="color:#dbeafe;margin-top:8px;">Doctor Verification</p>
                     </div>
-                    `
-                );
-            } else {
-                await sendMail(
-                    doctor.email,
-                    "Doctor Verification Update – VEDKRITI",
-                    `
-                    <div style="font-family:sans-serif;max-width:480px;margin:auto">
-                        <h2 style="color:#dc2626">
-                            Verification Rejected
+
+                    <div style="padding:35px;">
+                        <h2 style="color:#16a34a;margin-top:0;">
+                            ✅ Congratulations Dr. ${doctor.name}!
                         </h2>
 
-                        <p>Dear Dr. ${doctor.name},</p>
-
-                        <p>
-                            Unfortunately, your doctor verification request was not approved.
+                        <p style="font-size:16px;color:#444;">
+                            Your doctor account has been successfully verified.
                         </p>
 
-                        <p>
-                            <strong>Reason:</strong>
+                        <div style="background:#ecfdf5;border-left:5px solid #16a34a;padding:18px;border-radius:8px;margin:25px 0;">
+                            <strong>Status:</strong> VERIFIED
+                        </div>
+
+                        <p style="color:#555;">
+                            You can now log in and start accepting appointments through
+                            <strong>VEDKRITI</strong>.
+                        </p>
+
+                        <div style="text-align:center;margin:35px 0;">
+                            <a href="https://yourwebsite.com/login"
+                               style="background:#2563eb;color:#fff;padding:14px 30px;
+                                      text-decoration:none;border-radius:8px;
+                                      display:inline-block;font-weight:bold;">
+                                Login Now
+                            </a>
+                        </div>
+
+                        <p style="font-size:14px;color:#777;">
+                            Thank you for joining the VEDKRITI healthcare network.
+                        </p>
+                    </div>
+
+                    <div style="background:#f8fafc;padding:18px;text-align:center;font-size:13px;color:#888;">
+                        © ${new Date().getFullYear()} VEDKRITI. All Rights Reserved.
+                    </div>
+
+                </div>
+            </div>
+            `
+        );
+    } else {
+        await sendMail(
+            doctor.email,
+            "VEDKRITI Doctor Verification Update",
+            `
+            <div style="margin:0;padding:40px;background:#f4f7fb;font-family:Arial,sans-serif;">
+                <div style="max-width:600px;margin:auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,0.1);">
+
+                    <div style="background:linear-gradient(135deg,#dc2626,#991b1b);padding:30px;text-align:center;">
+                        <h1 style="color:#fff;margin:0;">VEDKRITI</h1>
+                        <p style="color:#fecaca;margin-top:8px;">Doctor Verification</p>
+                    </div>
+
+                    <div style="padding:35px;">
+
+                        <h2 style="color:#dc2626;margin-top:0;">
+                            Verification Not Approved
+                        </h2>
+
+                        <p style="font-size:16px;color:#444;">
+                            Dear Dr. ${doctor.name},
+                        </p>
+
+                        <p style="color:#555;">
+                            Unfortunately, your verification request could not be approved at this time.
+                        </p>
+
+                        <div style="background:#fef2f2;border-left:5px solid #dc2626;padding:18px;border-radius:8px;margin:25px 0;">
+                            <strong>Reason:</strong><br>
                             ${doctor.verificationNote}
+                        </div>
+
+                        <p style="color:#555;">
+                            Please update your documents or information and submit your verification request again.
                         </p>
 
-                        <p>
-                            Please update the required information/documents and submit them again.
-                        </p>
+                        <div style="text-align:center;margin:35px 0;">
+                            <a href="https://yourwebsite.com"
+                               style="background:#dc2626;color:#fff;padding:14px 30px;
+                                      text-decoration:none;border-radius:8px;
+                                      display:inline-block;font-weight:bold;">
+                                Update Documents
+                            </a>
+                        </div>
 
-                        <p>Thank you,<br>VEDKRITI Team</p>
                     </div>
-                    `
-                );
-            }
-        } catch (mailError) {
-            console.error("Email sending failed:", mailError); // Verification is already saved, so don't fail the API because of email
-        }
 
-        return res.status(200).json({
-            status: "SUCCESS",
-            message: verified
-                ? "Doctor verified successfully."
-                : "Doctor verification rejected.",
-            data: doctor,
-        });
-    } catch (err) {
-        next(err);
+                    <div style="background:#f8fafc;padding:18px;text-align:center;font-size:13px;color:#888;">
+                        © ${new Date().getFullYear()} VEDKRITI. All Rights Reserved.
+                    </div>
+
+                </div>
+            </div>
+            `
+        );
     }
+} catch (mailError) {
+    console.error("Email sending failed:", mailError);
+}
 };
 
 
