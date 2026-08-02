@@ -9,7 +9,7 @@ router.use(protect, restrictTo('PATIENT'));
 
 router.get('/profile', ctrl.getProfile);
 
-
+router.get("/profile-status", ctrl.profileStatus);
 router.put('/update-profile', uploadMiddleware('photo', 5), ctrl.updateProfile);
 
 
