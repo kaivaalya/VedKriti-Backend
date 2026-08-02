@@ -116,7 +116,7 @@ if(!avail){
     return res.status(201).json({
       status: "SUCCESS",
       message: "Slot is full. You have been added to the waiting list.",
-      data: booking
+      data: bookings
     });
 }
       // Increment manually
