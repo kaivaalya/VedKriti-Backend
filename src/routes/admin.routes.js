@@ -21,7 +21,7 @@ const {
 const {
     adminLogin,
     verify,
-    refreshToken,clearCookie ,getDoctorDocuments
+    refreshToken, getDoctorDocuments
 } = require("../controllers/admin.controller");
 
 
