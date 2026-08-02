@@ -9,7 +9,7 @@ const {
   sendBookingConfirmationEmail,
   sendCancellationEmail,
 } = require('../configs/mailer.config');
-const generateAgoraToken = require("../utils/agora.utils");
+const { generateAgoraToken } = require("../utils/agora.utils");
 const AppError = require('../utils/AppError');
 
 
