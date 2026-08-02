@@ -47,5 +47,5 @@ router.post(
 );
 router.get('/documents',           ctrl.getDocuments);
 router.delete('/document/:docId',  ctrl.deleteDocument);
-router.get("/profile-status", ctrl.profileStatus);
+router.get("/profile-status",protect, restrictTo('DOCTOR'), ctrl.profileStatus);
 module.exports = router;
