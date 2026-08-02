@@ -261,7 +261,7 @@ exports.getDoctorProfile = async (req,res,next)=>{
 
 
         const today = new Date(); today.setHours(0,0,0,0);
-        const end = new Date(today); end.setDate(today.getDate+14)
+        const end = new Date(today); end.setDate(today.getDate() +14)
         const availability= await DoctorAvailability.find({
             docID:req.params.id, date:{
                 $gte:today,
