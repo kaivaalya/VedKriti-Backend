@@ -34,3 +34,5 @@ const generateAgoraToken = (channelName, uid, expirySeconds = 3600) => {
 
   return token;
 };
+
+module.exports = { generateAgoraToken };
