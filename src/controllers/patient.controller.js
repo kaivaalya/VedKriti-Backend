@@ -77,3 +77,22 @@ exports.submitPreDiagnosis = async (req,res,next)=>{
         
     }
 }
+
+
+exports.profileStatus = async (req, res, next) => {
+    try {
+        const doctor = await Doctor.findById(req.user.id).select("verified");
+
+        if (!doctor) {
+            return next(new AppError("Doctor not found.", 404));
+        }
+
+        res.status(200).json({
+            status: "SUCCESS",
+            data: doctor.verified
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
