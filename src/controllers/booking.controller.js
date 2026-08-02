@@ -47,8 +47,7 @@ exports.bookDoctor = async (req,res,next)=>{
         const consultationType = (req.query.consultationType||'').toUpperCase();
 
       if (!["ONLINE", "OFFLINE"].includes(consultationType)) {
-    throw
-        new AppError(
+    throw new AppError(
             "consultationType must be ONLINE or OFFLINE.",
             400
         )
