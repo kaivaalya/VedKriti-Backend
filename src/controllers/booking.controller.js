@@ -20,11 +20,22 @@ const normalizeDate = (d)=>{
 }
 
 const slotFields = {
-    MORNING:{capacity:'morningCapacity',bookings:'morningBookings'},
-    AFTERNOON: { capacity: 'afternoonCapacity', bookings: 'afternoonBookings' },
-  EVENING:   { capacity: 'eveningCapacity',   bookings: 'eveningBookings' },
-
-}
+  MORNING: {
+    capacity: "morningCapacity",
+    bookings: "morningBookings",
+    nextToken: "morningNextToken",
+  },
+  AFTERNOON: {
+    capacity: "afternoonCapacity",
+    bookings: "afternoonBookings",
+    nextToken: "afternoonNextToken",
+  },
+  EVENING: {
+    capacity: "eveningCapacity",
+    bookings: "eveningBookings",
+    nextToken: "eveningNextToken",
+  },
+};
 
 
 exports.bookDoctor = async (req,res,next)=>{
@@ -77,59 +88,68 @@ exports.bookDoctor = async (req,res,next)=>{
        if(duplicate) return next(new AppError('You already have a booking for thid slot',409));
 
 
-       const {capacity,bookings}=slotFields[slotUpper];
-       const avail = await DoctorAvailability.findOneAndUpdate({
-        docID,
-        date:bookingDate,
-        [bookings]:{$lt: mongoose.Types.Decimal128.fromString(`${doctor[capacity]}`)},
+     const { capacity, bookings, nextToken } = slotFields[slotUpper];
 
-       },
-    {
-        $inc:{[bookings]:1}
+const avail = await DoctorAvailability.findOneAndUpdate(
+  {
+    docID,
+    date: bookingDate,
+    [bookings]: { $lt: doctor[capacity] },
+  },
+  {
+    $inc: {
+      [bookings]: 1,
+      [nextToken]: 1,
     },
-{returnDocument: 'after',session}).catch(()=>null);
+  },
+  {
+    returnDocument: "after",
+    session,
+  }
+);
 
+if (!avail) {
+  const availRecord = await DoctorAvailability.findOne({
+    docID,
+    date: bookingDate,
+  }).session(session);
 
+  if (!availRecord) {
+    throw new AppError(
+      "Availability record not found. Doctor may not have set up slots.",
+      400
+    );
+  }
 
-if(!avail){
-    const availRecord = await DoctorAvailability.findOne({ docID, date: bookingDate }).session(session);
-      if (!availRecord) {
-        await session.abortTransaction(); session.endSession();
-        return next(new AppError('Availability record not found. Doctor may not have set up slots.', 400));
-      }
-     if (availRecord[bookings] >= availRecord[capacity]) {
-
-    const [bookings] = await Booking.create([
-      {
-        docID,
-        patID,
-        date: bookingDate,
-        slot: slotUpper,
-        consultationType,
-        status: "PENDING"
-      }
-    ], { session });
+  if (availRecord[bookings] >= doctor[capacity]) {
+    const [waitingBooking] = await Booking.create(
+      [
+        {
+          docID,
+          patID,
+          date: bookingDate,
+          slot: slotUpper,
+          consultationType,
+          status: "PENDING",
+        },
+      ],
+      { session }
+    );
 
     await session.commitTransaction();
-    session.endSession();
 
     return res.status(201).json({
       status: "SUCCESS",
       message: "Slot is full. You have been added to the waiting list.",
-      data: bookings
+      data: waitingBooking,
     });
+  }
+
+  throw new AppError("Unable to reserve slot.", 500);
 }
-      // Increment manually
-      availRecord[bookings] += 1;
-      await availRecord.save({ session });
-}
 
-const tokenNo = await Booking.countDocuments({
-    docID,date:bookingDate,slot:slotUpper,
-    status:{$in:['CONFIRMED', 'CONSULTING', 'DONE']}
-}).session(session)+1;
-
-
+// Atomic token number
+const tokenNo = avail[nextToken] - 1;
 const otp = generateConsultationOTP();
 const otpExpiry = new Date(bookingDate.getTime() + 24 * 60 * 60 * 1000);
 
