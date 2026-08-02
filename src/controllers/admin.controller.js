@@ -431,3 +431,46 @@ exports.getAllDoctors = async (req, res, next) => {
         next(err);
     }
 };
+
+
+exports.profileStatus = async (req, res, next) => {
+  try {
+    if (req.user.role === "PATIENT") {
+      const patient = await Patient.findById(req.user.id);
+
+      if (!patient) {
+        return next(new AppError("Patient not found.", 404));
+      }
+
+      const profileCompleted =
+        patient.name &&
+        patient.email &&
+        patient.phone &&
+        patient.gender &&
+        patient.dob &&
+        patient.address;
+
+      return res.status(200).json({
+        status: "SUCCESS",
+        data: !!profileCompleted
+      });
+    }
+
+    if (req.user.role === "DOCTOR") {
+      const doctor = await Doctor.findById(req.user.id).select("verified");
+
+      if (!doctor) {
+        return next(new AppError("Doctor not found.", 404));
+      }
+
+      return res.status(200).json({
+        status: "SUCCESS",
+        data: doctor.verified
+      });
+    }
+
+    return next(new AppError("Invalid user role.", 400));
+  } catch (err) {
+    next(err);
+  }
+};
