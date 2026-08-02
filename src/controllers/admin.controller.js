@@ -211,165 +211,134 @@ exports.getPendingDoctors = async(req,res,next)=>{
 
 
 
-   exports.verifyDoctor = async (req, res, next) => {
-  // Accept both boolean and string values
-if (typeof verified === "string") {
-    const value = verified.trim().toLowerCase();
-
-    if (value === "true") {
-        verified = true;
-    } else if (value === "false") {
-        verified = false;
-    } else {
-        return next(
-            new AppError(
-                "Invalid value for 'verified'. Use true or false.",
-                400
-            )
-        );
-    }
-} else if (typeof verified !== "boolean") {
-    return next(
-        new AppError(
-            "The 'verified' field must be a boolean or a string ('true'/'false').",
-            400
-        )
-    );
-}
-
-try {
-    if (verified) {
-        await sendMail(
-            doctor.email,
-            "🎉 Your VEDKRITI Doctor Account Has Been Verified",
-            `
-            <div style="margin:0;padding:40px;background:#f4f7fb;font-family:Arial,sans-serif;">
-                <div style="max-width:600px;margin:auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,.1);">
-
-                    <div style="background:linear-gradient(135deg,#2563eb,#1e40af);padding:30px;text-align:center;">
-                        <h1 style="margin:0;color:#fff;">VEDKRITI</h1>
-                        <p style="margin-top:8px;color:#dbeafe;">Doctor Verification</p>
-                    </div>
-
-                    <div style="padding:35px;">
-                        <h2 style="color:#16a34a;margin-top:0;">
-                            ✅ Congratulations Dr. ${doctor.name}!
-                        </h2>
-
-                        <p style="font-size:16px;color:#444;">
-                            We are pleased to inform you that your doctor account has been successfully verified.
-                        </p>
-
-                        <div style="background:#ecfdf5;border-left:5px solid #16a34a;padding:18px;border-radius:8px;margin:25px 0;">
-                            <strong>Status:</strong> VERIFIED
+  exports.verifyDoctor = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        let { verified, verificationNote } = req.body;
+        // Convert string to boolean if needed
+        if (typeof verified === "string") {
+            verified = verified.toLowerCase() === "true";
+        }
+        const doctor = await Doctor.findById(id);
+        if (!doctor) {
+            return next(new AppError("Doctor not found.", 404));
+        }
+        doctor.verified = verified;
+        // Save verification note only when rejected
+        if (!verified) {
+            doctor.verificationNote =
+                verificationNote || "Please review your submitted information.";
+        } else {
+            doctor.verificationNote = "";
+        }
+        await doctor.save();
+        try {
+            if (verified) {
+                await sendMail(
+                    doctor.email,
+                    "Doctor Account Verified VEDKRITI",
+                    `
+                    <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:520px;margin:auto;background:#f4f9f7;padding:24px;border-radius:12px;">
+                        <div style="background:linear-gradient(135deg,#16a34a,#0d9488);border-radius:12px 12px 0 0;padding:32px 24px;text-align:center;">
+                            <div style="font-size:44px;line-height:1;margin-bottom:8px;">🩺✅</div>
+                            <h1 style="color:#ffffff;margin:0;font-size:22px;letter-spacing:0.5px;">VEDKRITI</h1>
+                            <p style="color:#e6fff5;margin:4px 0 0;font-size:13px;letter-spacing:1px;text-transform:uppercase;">Healthcare Platform</p>
                         </div>
 
-                        <p style="color:#555;">
-                            You can now log in to your account and start managing appointments on <strong>VEDKRITI</strong>.
-                        </p>
+                        <div style="background:#ffffff;padding:32px 28px;border-radius:0 0 12px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                            <h2 style="color:#16a34a;margin-top:0;font-size:20px;">
+                                ✓ Account Verified
+                            </h2>
+                            <p style="color:#333;font-size:15px;line-height:1.6;">
+                                Dear Dr. ${doctor.name},
+                            </p>
+                            <p style="color:#333;font-size:15px;line-height:1.6;">
+                                Congratulations! Your doctor account has been successfully
+                                <strong style="color:#16a34a;">verified</strong>.
+                            </p>
+                            <p style="color:#333;font-size:15px;line-height:1.6;">
+                                You can now log in and start using all doctor features on
+                                <strong>VEDKRITI</strong>.
+                            </p>
 
-                        <div style="text-align:center;margin:35px 0;">
-                            <a href="https://yourwebsite.com/login"
-                               style="background:#2563eb;color:#fff;text-decoration:none;padding:14px 30px;border-radius:8px;display:inline-block;font-weight:bold;">
-                                Login Now
-                            </a>
+                            <div style="text-align:center;margin:28px 0;">
+                                <a href="https://ved-kriti-frontend.vercel.app/doc-dashboard/home.html" style="background:#16a34a;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-size:15px;font-weight:600;display:inline-block;">
+                                    Go to Dashboard
+                                </a>
+                            </div>
+
+                            <p style="color:#555;font-size:14px;">Thank you for joining VEDKRITI.</p>
                         </div>
 
-                        <p style="font-size:14px;color:#666;">
-                            Thank you for joining the VEDKRITI healthcare network.
+                        <p style="text-align:center;color:#94a3b8;font-size:12px;margin-top:20px;">
+                            © ${new Date().getFullYear()} VEDKRITI. All rights reserved.
                         </p>
                     </div>
-
-                    <div style="background:#f8fafc;padding:18px;text-align:center;font-size:13px;color:#888;">
-                        © ${new Date().getFullYear()} VEDKRITI. All Rights Reserved.
-                    </div>
-
-                </div>
-            </div>
-            `
-        );
-    } else {
-        await sendMail(
-            doctor.email,
-            "VEDKRITI Doctor Verification Update",
-            `
-            <div style="margin:0;padding:40px;background:#f4f7fb;font-family:Arial,sans-serif;">
-                <div style="max-width:600px;margin:auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,.1);">
-
-                    <div style="background:linear-gradient(135deg,#dc2626,#991b1b);padding:30px;text-align:center;">
-                        <h1 style="margin:0;color:#fff;">VEDKRITI</h1>
-                        <p style="margin-top:8px;color:#fecaca;">Doctor Verification</p>
-                    </div>
-
-                    <div style="padding:35px;">
-
-                        <h2 style="color:#dc2626;margin-top:0;">
-                            ❌ Verification Not Approved
-                        </h2>
-
-                        <p style="font-size:16px;color:#444;">
-                            Dear Dr. ${doctor.name},
-                        </p>
-
-                        <p style="color:#555;">
-                            Unfortunately, your doctor verification request could not be approved at this time.
-                        </p>
-
-                        <div style="background:#fef2f2;border-left:5px solid #dc2626;padding:18px;border-radius:8px;margin:25px 0;">
-                            <strong>Reason:</strong><br>
-                            ${doctor.verificationNote}
+                    `
+                );
+            } else {
+                await sendMail(
+                    doctor.email,
+                    "Doctor Verification Update – VEDKRITI",
+                    `
+                    <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:520px;margin:auto;background:#fdf5f4;padding:24px;border-radius:12px;">
+                        <div style="background:linear-gradient(135deg,#dc2626,#b91c1c);border-radius:12px 12px 0 0;padding:32px 24px;text-align:center;">
+                            <div style="font-size:44px;line-height:1;margin-bottom:8px;">🩺⚠️</div>
+                            <h1 style="color:#ffffff;margin:0;font-size:22px;letter-spacing:0.5px;">VEDKRITI</h1>
+                            <p style="color:#fde8e8;margin:4px 0 0;font-size:13px;letter-spacing:1px;text-transform:uppercase;">Healthcare Platform</p>
                         </div>
 
-                        <p style="color:#555;">
-                            Please review the above reason, update your information or documents, and submit your verification request again.
-                        </p>
+                        <div style="background:#ffffff;padding:32px 28px;border-radius:0 0 12px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                            <h2 style="color:#dc2626;margin-top:0;font-size:20px;">
+                                Verification Rejected
+                            </h2>
+                            <p style="color:#333;font-size:15px;line-height:1.6;">
+                                Dear Dr. ${doctor.name},
+                            </p>
+                            <p style="color:#333;font-size:15px;line-height:1.6;">
+                                Unfortunately, your doctor verification request was not approved.
+                            </p>
 
-                        <div style="text-align:center;margin:35px 0;">
-                            <a href="https://yourwebsite.com"
-                               style="background:#dc2626;color:#fff;text-decoration:none;padding:14px 30px;border-radius:8px;display:inline-block;font-weight:bold;">
-                                Update Documents
-                            </a>
+                            <div style="background:#fef2f2;border-left:4px solid #dc2626;border-radius:6px;padding:14px 16px;margin:20px 0;">
+                                <p style="margin:0;color:#7f1d1d;font-size:14px;">
+                                    <strong>Reason:</strong> ${doctor.verificationNote}
+                                </p>
+                            </div>
+
+                            <p style="color:#333;font-size:15px;line-height:1.6;">
+                                Please update the required information/documents and submit them again.
+                            </p>
+
+                            <div style="text-align:center;margin:28px 0;">
+                                <a href="https://ved-kriti-frontend.vercel.app/doc-details/details.html" style="background:#dc2626;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-size:15px;font-weight:600;display:inline-block;">
+                                    Update Documents
+                                </a>
+                            </div>
+
+                            <p style="color:#555;font-size:14px;">Thank you,<br>VEDKRITI Team</p>
                         </div>
 
-                        <p style="font-size:14px;color:#666;">
-                            If you believe this is a mistake, please contact the VEDKRITI support team.
+                        <p style="text-align:center;color:#94a3b8;font-size:12px;margin-top:20px;">
+                            © ${new Date().getFullYear()} VEDKRITI. All rights reserved.
                         </p>
-
                     </div>
-
-                    <div style="background:#f8fafc;padding:18px;text-align:center;font-size:13px;color:#888;">
-                        © ${new Date().getFullYear()} VEDKRITI. All Rights Reserved.
-                    </div>
-
-                </div>
-            </div>
-            `
-        );
-    }
-} catch (mailError) {
-    console.error("Email sending failed:", mailError);
-}
-};
-
-
-exports.getAllDoctors = async(req,res,next)=>{
- try {
-
-        const doctors = await Doctor.find(
-            {},
-            "name email specialization1 city institute photo verified"
-        );
-
-        res.status(200).json({
+                    `
+                );
+            }
+        } catch (mailError) {
+            console.error("Email sending failed:", mailError); // Verification is already saved, so don't fail the API because of email
+        }
+        return res.status(200).json({
             status: "SUCCESS",
-            data: doctors
+            message: verified
+                ? "Doctor verified successfully."
+                : "Doctor verification rejected.",
+            data: doctor,
         });
-
     } catch (err) {
         next(err);
     }
-}
-
+};
 exports.getDoctorDocuments = async(req,res,next)=>{
   try {
         const { id } = req.params;
