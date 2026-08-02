@@ -415,3 +415,19 @@ try {
         next(err);
     }
 }
+exports.getAllDoctors = async (req, res, next) => {
+    try {
+        const doctors = await Doctor.find(
+            {},
+            "name email phone specialization1 specialization2 city verified photo"
+        );
+
+        res.status(200).json({
+            status: "SUCCESS",
+            results: doctors.length,
+            data: doctors
+        });
+    } catch (err) {
+        next(err);
+    }
+};
