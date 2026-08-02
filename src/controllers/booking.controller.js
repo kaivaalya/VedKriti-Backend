@@ -558,8 +558,7 @@ exports.getAgoraToken = async (req, res, next) => {
     const uid = isDoctor ? 1 : 2;
 
     const expirySeconds = 3600; // 1 hour
-    console.log(RtcTokenBuilder);
-console.log(RtcRole);
+ 
     const token = generateAgoraToken(channelName, uid, expirySeconds);
 
     res.status(200).json({
