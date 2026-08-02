@@ -9,11 +9,11 @@ const { uploadMiddleware }    = require('../configs/cloudinary.config');
 router.get('/find-doctor', ctrl.findDoctor);
 
 router.get('/profile/:id', ctrl.getDoctorProfile);
-
+router.get("/profile-status", ctrl.profileStatus);
 router.get('/availability/:id', ctrl.getAvailability);
 
 
-
+router.get("/profile-status", ctrl.profileStatus);
 
 
 router.use(protect, restrictTo('DOCTOR'));
