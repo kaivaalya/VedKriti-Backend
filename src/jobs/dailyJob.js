@@ -61,7 +61,7 @@ const regenrateAvailability = async (
 };
 
 
-cron.schedule("* * * * *", async () => {
+cron.schedule("0 0 * * *", async () => {
 
     try {
 
