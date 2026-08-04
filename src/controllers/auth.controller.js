@@ -152,7 +152,10 @@ res.status(200).json({
     name: user.name,
 });
 
-
+} catch (err) {
+    next(err);
+}
+};
 
 
 
