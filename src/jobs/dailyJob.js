@@ -3,7 +3,7 @@ const cron = require("node-cron");
 const Doctor = require("../models/doctor.model");
 const DoctorAvailability = require("../models/doctorAvailability.model");
 
-const DoctorAvailability = require("../models/doctorAvailability.model");
+
 
 const regenrateAvailability = async (
     docID,
