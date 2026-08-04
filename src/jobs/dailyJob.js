@@ -1,7 +1,7 @@
 const cron = require("node-cron");
 
-const Doctor = require("../models/doctor.model");
-const DoctorAvailability = require("../models/doctorAvailability.model");
+const Doctor = require("../models/Doctor.model");
+const DoctorAvailability = require("../models/DoctorAvailability.model");
 
 
 
