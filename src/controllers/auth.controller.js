@@ -105,28 +105,52 @@ exports.verifyUser = async (req, res, next) => {
       return next(new AppError('Invalid OTP.', 400));
     }
 
-    // Move to final collection
-    if (tempUser.role === 'PATIENT') {
-      await Patient.create({
-        name:     tempUser.name,
-        email:    tempUser.email,
-        password: tempUser.password,
-      });
-    } else {
-      await Doctor.create({
-        name:     tempUser.name,
-        email:    tempUser.email,
-        password: tempUser.password,
-      });
-    }
+let user;
 
-    await TempUser.deleteOne({ email });
+if (tempUser.role === "PATIENT") {
+    user = await Patient.create({
+        name: tempUser.name,
+        email: tempUser.email,
+        password: tempUser.password,
+    });
+} else {
+    user = await Doctor.create({
+        name: tempUser.name,
+        email: tempUser.email,
+        password: tempUser.password,
+    });
+}
 
-    res.status(200).json({ status: 'SUCCESS', message: 'Account verified successfully. You can now log in.' });
-  } catch (err) {
-    next(err);
-  }
-};
+
+await TempUser.deleteOne({ email });
+
+
+const accessToken = generateAccessToken({
+    id: user._id.toString(),
+    role: tempUser.role,
+});
+
+const refreshToken = generateRefreshToken({
+    id: user._id.toString(),
+    role: tempUser.role,
+});
+
+
+res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+});
+
+
+res.status(200).json({
+    status: "SUCCESS",
+    token: accessToken,
+    userId: user._id,
+    role: tempUser.role,
+    name: user.name,
+});
 
 
 
