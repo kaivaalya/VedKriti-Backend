@@ -11,7 +11,7 @@ const PORT=3000
 
 connectDB()
 
-
+require("./src/jobs/dailyJob");
 app.listen(PORT,()=>{
     console.log("server started")
 })
