@@ -262,7 +262,7 @@ exports.getPendingDoctors = async(req,res,next)=>{
                             </p>
 
                             <div style="text-align:center;margin:28px 0;">
-                                <a href="https://ved-kriti-frontend.vercel.app/doc-dashboard/home.html" style="background:#16a34a;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-size:15px;font-weight:600;display:inline-block;">
+                                <a href="https://ved-kriti-frontend.vercel.app/auth/auth.html" style="background:#16a34a;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-size:15px;font-weight:600;display:inline-block;">
                                     Go to Dashboard
                                 </a>
                             </div>
