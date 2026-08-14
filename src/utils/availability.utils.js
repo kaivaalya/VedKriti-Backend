@@ -49,7 +49,7 @@ exports.rolloverDoctorAvailability = async () => {
             eveningNextToken: 1,
           },
         },
-        { upsert: true, new: false }
+        { upsert: true,returnDocument: "after" }
       );
       if (result === null) created += 1;
     }
