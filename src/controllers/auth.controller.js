@@ -135,7 +135,7 @@ const refreshToken = generateRefreshToken({
     role: tempUser.role,
 });
 
-res.cookie("refreshToken", newRefreshToken, {
+   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: true,
     sameSite: "none",
@@ -197,7 +197,7 @@ exports.loginUser = async (req, res, next) => {
     const refreshToken = generateRefreshToken({ id: user._id.toString(), role });
     const accessToken = generateAccessToken({ id: user._id.toString(), role });
 
-   res.cookie("refreshToken", newRefreshToken, {
+   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: true,
     sameSite: "none",
@@ -245,7 +245,7 @@ try{
     const newRefreshToken= generateRefreshToken({id: decoded._id.toString(), role: decoded.role})
 
 
-    res.cookie("refreshToken", newRefreshToken, {
+   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: true,
     sameSite: "none",
