@@ -9,9 +9,15 @@ const PORT=3000
 
 
 
-connectDB()
 
-require("./src/jobs/dailyJob");
+
+const { startScheduledJobs } = require('./jobs/scheduler');
+const { rolloverDoctorAvailability } = require('./utils/availability.utils');
+
+startScheduledJobs();
+rolloverDoctorAvailability().catch(console.error); // backfill once on boot too
+
+connectDB()
 app.listen(PORT,()=>{
     console.log("server started")
 })

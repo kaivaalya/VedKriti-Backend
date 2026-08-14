@@ -43,7 +43,7 @@ const regenrateAvailability = async (docID, morningCap, afternoonCap, eveningCap
 
                     },
                 },
-                upsert: true,
+                upsert: true,new: true
             },
         });
     }
