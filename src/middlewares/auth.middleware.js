@@ -17,7 +17,7 @@ const protect = (req, res, next) => {
             message: "Unauthorized"
         });
     }
-        const decoded = verifyAccessToken(accessToken);
+        const decoded = verifyAccessToken(token);
 
         req.user = decoded;
         next();
