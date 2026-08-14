@@ -10,7 +10,7 @@ const protect = (req, res, next) => {
     try {
         
 
-        const accessToken =req.cookies.accessToken;
+        const token =req.cookies.accessToken;
 
          if (!token) {
         return res.status(401).json({
