@@ -245,7 +245,7 @@ try{
     const newRefreshToken= generateRefreshToken({id: decoded._id.toString(), role: decoded.role})
 
 
-   res.cookie("refreshToken", refreshToken, {
+   res.cookie("refreshToken", newRefreshToken, {
     httpOnly: true,
     secure: true,
     sameSite: "none",
