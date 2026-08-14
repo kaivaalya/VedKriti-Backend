@@ -135,14 +135,19 @@ const refreshToken = generateRefreshToken({
     role: tempUser.role,
 });
 
-
-res.cookie("refreshToken", refreshToken, {
+res.cookie("refreshToken", newRefreshToken, {
     httpOnly: true,
     secure: true,
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    sameSite: "none",
+    maxAge: 7 * 24 * 60 * 60 * 1000
 });
 
+res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 15 * 60 * 1000
+});
 
 res.status(200).json({
     status: "SUCCESS",
@@ -192,12 +197,20 @@ exports.loginUser = async (req, res, next) => {
     const refreshToken = generateRefreshToken({ id: user._id.toString(), role });
     const accessToken = generateAccessToken({ id: user._id.toString(), role });
 
-    res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    })
+   res.cookie("refreshToken", newRefreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 7 * 24 * 60 * 60 * 1000
+});
+
+res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 15 * 60 * 1000
+});
+
 
     res.status(200).json({
       status: 'SUCCESS',
@@ -232,13 +245,19 @@ try{
     const newRefreshToken= generateRefreshToken({id: decoded._id.toString(), role: decoded.role})
 
 
-     res.cookie("refreshToken", newRefreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    })
+    res.cookie("refreshToken", newRefreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 7 * 24 * 60 * 60 * 1000
+});
 
+res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 15 * 60 * 1000
+});
      res.status(200).json({
         message: "Access token refreshed successfully",
          accessToken 

@@ -8,13 +8,15 @@ const protect = (req, res, next) => {
 
 
     try {
-        const authHeader = req.headers.authorization;
+        
 
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return next(new AppError("No token provided.", 401));
-        }
+        const accessToken =req.cookies.accessToken;
 
-        const accessToken = authHeader.split(" ")[1];
+         if (!token) {
+        return res.status(401).json({
+            message: "Unauthorized"
+        });
+    }
         const decoded = verifyAccessToken(accessToken);
 
         req.user = decoded;
