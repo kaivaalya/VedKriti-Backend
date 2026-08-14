@@ -11,8 +11,8 @@ const PORT=3000
 
 
 
-const { startScheduledJobs } = require('./jobs/scheduler');
-const { rolloverDoctorAvailability } = require('./utils/availability.utils');
+const { startScheduledJobs } = require('./src/jobs/scheduler');
+const { rolloverDoctorAvailability } = require('./src/utils/availability.utils');
 
 startScheduledJobs();
 rolloverDoctorAvailability().catch(console.error); // backfill once on boot too
