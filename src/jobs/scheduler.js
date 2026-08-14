@@ -1,6 +1,6 @@
 const cron = require('node-cron'); // npm install node-cron
 const { rolloverDoctorAvailability } = require('../utils/availability.utils');
-const { sendUpcomingAppointmentReminders } = require('../utils/reminder.utils'); // added in the reminders section below
+// const { sendUpcomingAppointmentReminders } = require('../utils/reminder.utils'); // added in the reminders section below
 
 exports.startScheduledJobs = () => {
   
