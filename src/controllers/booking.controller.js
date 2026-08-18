@@ -438,117 +438,97 @@ exports.getPatientBookingsForDoctor = async (req, res, next) => {
 
 
 
-exports.updateCapacity = async (req,res,next)=>{
+exports.updateCapacity = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-    const session = await mongoose.startSession();
+  try {
+    const docID = req.user.id;
+    const { date, morningCapacity, afternoonCapacity, eveningCapacity } = req.body;
 
-    session.startTransaction();
+    if (!date) return next(new AppError("Date required", 400));
+    const updateDate = new Date(date);
 
-    try {
+    // 1. Fetch current availability BEFORE updating to check for overflows
+    const avail = await DoctorAvailability.findOneAndUpdate(
+      { docID, date: updateDate },
+      {
+        $set: {
+          morningCapacity:   morningCapacity ?? 0,
+          afternoonCapacity: afternoonCapacity ?? 0,
+          eveningCapacity:   eveningCapacity ?? 0,
+        },
+      },
+      { returnDocument: 'before', session }
+    );
 
-        const docID = req.user.id;
+    if (!avail) {
+      await session.abortTransaction();
+      session.endSession();
+      return next(new AppError("Availability not found", 404));
+    }
 
-        const {
-            date,
-            morningCapacity,
-            afternoonCapacity,
-            eveningCapacity
-        } = req.body;
+    // 2. Handle downgrades (Overflow -> PENDING)
+    const newCaps = { MORNING: morningCapacity, AFTERNOON: afternoonCapacity, EVENING: eveningCapacity };
+    const bookingsField = { MORNING: 'morningBookings', AFTERNOON: 'afternoonBookings', EVENING: 'eveningBookings' };
 
+    for (const slot of ['MORNING', 'AFTERNOON', 'EVENING']) {
+      const newCap = newCaps[slot];
+      if (newCap !== undefined && avail[bookingsField[slot]] > newCap) {
+        const overflowCount = avail[bookingsField[slot]] - newCap;
 
-        if(!date){
-            return next(
-                new AppError(
-                    "Date required",
-                    400
-                )
-            );
+        // Find the most recently added patients to remove from the slot
+        const excessBookings = await Booking.find({
+          docID, date: updateDate, slot, status: { $in: ['CONFIRMED', 'CONSULTING'] }
+        })
+          .sort({ tokenNo: -1 })
+          .limit(overflowCount)
+          .session(session);
+
+        for (const b of excessBookings) {
+          b.status = 'PENDING';
+          b.tokenNo = 0;
+          b.otp = '';
+          b.otpExpiry = null;
+          await b.save({ session });
         }
 
-
-       
-
-
-        const availability =
-            await DoctorAvailability.findOneAndUpdate(
-                {
-                    docID,
-                    date:new Date(date)
-                },
-                {
-                    morningCapacity,
-                    afternoonCapacity,
-                    eveningCapacity
-                },
-                {
-                    new:true,
-                    session
-                }
-            );
-
-
-        if(!availability){
-
-            await session.abortTransaction();
-            session.endSession();
-
-            return next(
-                new AppError(
-                    "Availability not found",
-                    404
-                )
-            );
-        }
-
-
-
-        await session.commitTransaction();
-        session.endSession();
-
-
-
-        // After capacity update
-        await confirmPendingBookings(
-            docID,
-            new Date(date),
-            "MORNING"
+        // Adjust the bookings counter down to the new capacity
+        await DoctorAvailability.updateOne(
+          { docID, date: updateDate },
+          { $set: { [bookingsField[slot]]: newCap } },
+          { session }
         );
 
-
-        await confirmPendingBookings(
-            docID,
-            new Date(date),
-            "AFTERNOON"
-        );
-
-
-        await confirmPendingBookings(
-            docID,
-            new Date(date),
-            "EVENING"
-        );
-
-
-
-        res.status(200).json({
-
-            status:"SUCCESS",
-
-            message:
-            "Capacity updated and pending bookings processed"
-
+        // Notify patients they were waitlisted (fire-and-forget outside transaction)
+        excessBookings.forEach(async (b) => {
+          const patient = await Patient.findById(b.patID).select('email name');
+          const doctor  = await Doctor.findById(docID).select('name');
+          sendCancellationEmail(
+            patient.email, patient.name, doctor.name, updateDate,
+            "Doctor reduced slot capacity. You have been moved to the waiting list."
+          ).catch(console.error);
         });
-
-
-    }
-    catch(err){
-
-        await session.abortTransaction();
-        session.endSession();
-
-        next(err);
+      }
     }
 
+    await session.commitTransaction();
+
+    // 3. Handle upgrades (Free space -> confirm pending)
+    await confirmPendingBookings(docID, updateDate, "MORNING");
+    await confirmPendingBookings(docID, updateDate, "AFTERNOON");
+    await confirmPendingBookings(docID, updateDate, "EVENING");
+
+    res.status(200).json({
+      status: "SUCCESS",
+      message: "Capacity updated. Overflows waitlisted, free space assigned.",
+    });
+  } catch (err) {
+    if (session.inTransaction()) await session.abortTransaction();
+    next(err);
+  } finally {
+    session.endSession();
+  }
 };
 
 
@@ -605,5 +585,190 @@ exports.getAgoraToken = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+// PUT /api/booking/cancel?id=<bookingId>
+// Body: { reason }
+exports.cancelBooking = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { id } = req.query;
+    const { reason } = req.body;
+    if (!id) throw new AppError('Booking id is required.', 400);
+
+    const booking = await Booking.findOne({
+      _id: id,
+      patID: req.user.id,
+    }).session(session);
+    if (!booking) throw new AppError('Booking not found.', 404);
+
+    if (!['PENDING', 'CONFIRMED'].includes(booking.status)) {
+      throw new AppError(`Cannot cancel a booking with status ${booking.status}.`, 400);
+    }
+
+    const wasConfirmed = booking.status === 'CONFIRMED';
+    booking.status = 'CANCELLED';
+    booking.cancellationReason = reason || 'Cancelled by patient.';
+    await booking.save({ session });
+
+    if (wasConfirmed) {
+      const { bookings } = slotFields[booking.slot];
+      await DoctorAvailability.findOneAndUpdate(
+        { docID: booking.docID, date: booking.date },
+        { $inc: { [bookings]: -1 } },
+        { session }
+      );
+    }
+
+    await session.commitTransaction();
+
+    if (wasConfirmed) {
+      await confirmPendingBookings(
+        booking.docID.toString(),
+        booking.date,
+        booking.slot
+      );
+    }
+
+    const patient = await Patient.findById(req.user.id).select('email name');
+    const doctor  = await Doctor.findById(booking.docID).select('name');
+    sendCancellationEmail(
+      patient.email, patient.name, doctor.name, booking.date, reason || 'Cancelled by you.'
+    ).catch(console.error);
+
+    res.status(200).json({ status: 'SUCCESS', message: 'Booking cancelled successfully.' });
+
+  } catch (err) {
+    if (session.inTransaction()) await session.abortTransaction();
+    next(err);
+  } finally {
+    session.endSession();
+  }
+};
+
+// PUT /api/booking/reschedule?id=<bookingId>
+// Body: { newDate, newSlot, consultationType }
+exports.rescheduleBooking = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { id } = req.query;
+    const { newDate, newSlot, consultationType } = req.body;
+
+    if (!id || !newDate || !newSlot) {
+      throw new AppError('id (query), newDate and newSlot (body) are required.', 400);
+    }
+
+    const slotUpper = newSlot.toUpperCase();
+    if (!['MORNING', 'AFTERNOON', 'EVENING'].includes(slotUpper)) {
+      throw new AppError('slot must be MORNING, AFTERNOON or EVENING.', 400);
+    }
+
+    const booking = await Booking.findOne({
+      _id: id,
+      patID: req.user.id,
+    }).session(session);
+    if (!booking) throw new AppError('Booking not found.', 404);
+    if (!['PENDING', 'CONFIRMED'].includes(booking.status)) {
+      throw new AppError(`Cannot reschedule a ${booking.status} booking.`, 400);
+    }
+
+    const newBookingDate = normalizeDate(newDate);
+    const today = normalizeDate(new Date());
+    const maxDate = new Date(today);
+    maxDate.setDate(today.getDate() + 14);
+
+    if (newBookingDate < today)   throw new AppError('Cannot reschedule to a past date.', 400);
+    if (newBookingDate > maxDate) throw new AppError('Bookings limited to 14 days ahead.', 400);
+
+    const isSameSlot = booking.date.getTime() === newBookingDate.getTime() && booking.slot === slotUpper;
+    if (isSameSlot) throw new AppError('New slot is the same as the current booking.', 400);
+
+    const doctor = await Doctor.findById(booking.docID).session(session);
+    const jsDay  = newBookingDate.getDay();
+    const dayNum = jsDay === 0 ? 7 : jsDay;
+    if ((doctor.holidays || '').includes(dayNum)) {
+      throw new AppError('Doctor is not available on that day.', 400);
+    }
+
+    const duplicate = await Booking.findOne({
+      docID: booking.docID, patID: req.user.id, date: newBookingDate, slot: slotUpper,
+      status: { $in: ['PENDING', 'CONFIRMED', 'CONSULTING'] },
+    }).session(session);
+    if (duplicate) throw new AppError('You already have a booking for this new slot.', 409);
+
+    const wasConfirmed = booking.status === 'CONFIRMED';
+    const oldSlot  = booking.slot;
+    const oldDate  = booking.date;
+    const oldDocID = booking.docID;
+
+    if (wasConfirmed) {
+      const { bookings: oldBookingsField } = slotFields[oldSlot];
+      await DoctorAvailability.findOneAndUpdate(
+        { docID: oldDocID, date: oldDate },
+        { $inc: { [oldBookingsField]: -1 } },
+        { session }
+      );
+    }
+
+    const { capacity, bookings, nextToken } = slotFields[slotUpper];
+    const newAvail = await DoctorAvailability.findOneAndUpdate(
+      {
+        docID: oldDocID,
+        date: newBookingDate,
+        [bookings]: { $lt: doctor[capacity] },
+      },
+      { $inc: { [bookings]: 1, [nextToken]: 1 } },
+      { returnDocument: 'after', session }
+    );
+
+    let newStatus  = 'PENDING';
+    let newTokenNo = 0;
+    let newOtp     = '';
+    let newOtpExpiry;
+
+    if (newAvail) {
+      newStatus   = 'CONFIRMED';
+      newTokenNo  = newAvail[nextToken] - 1;
+      newOtp      = generateConsultationOTP();
+      newOtpExpiry = new Date(newBookingDate.getTime() + 24 * 60 * 60 * 1000);
+    }
+
+    booking.date             = newBookingDate;
+    booking.slot             = slotUpper;
+    booking.consultationType = (consultationType || booking.consultationType).toUpperCase();
+    booking.status           = newStatus;
+    booking.tokenNo          = newTokenNo;
+    booking.otp              = newOtp;
+    booking.otpExpiry        = newOtpExpiry || null;
+    await booking.save({ session });
+
+    await session.commitTransaction();
+
+    if (wasConfirmed) {
+      await confirmPendingBookings(oldDocID.toString(), oldDate, oldSlot);
+    }
+
+    const patient = await Patient.findById(req.user.id).select('email name');
+    if (newStatus === 'CONFIRMED') {
+      sendBookingConfirmationEmail(
+        patient.email, patient.name, doctor.name,
+        newBookingDate, slotUpper, newTokenNo, newOtp
+      ).catch(console.error);
+    }
+
+    res.status(200).json({
+      status: 'SUCCESS',
+      message: newStatus === 'CONFIRMED' ? 'Booking rescheduled and confirmed.' : 'Booking rescheduled to waiting list.',
+      data: { bookingId: booking._id, newDate: newBookingDate, newSlot: slotUpper, status: newStatus, tokenNo: newTokenNo },
+    });
+
+  } catch (err) {
+    if (session.inTransaction()) await session.abortTransaction();
+    next(err);
+  } finally {
+    session.endSession();
   }
 };

@@ -150,9 +150,50 @@ const sendBookingConfirmationEmail =
             `
         );
 
+const sendReminderEmail = (to, patientName, doctorName, date, slot, tokenNo) =>
+    sendMail(
+        to,
+        'Appointment Reminder – DocApp',
+        `
+        <div style="font-family:sans-serif;max-width:480px;margin:auto">
+            <h2 style="color:#2563EB">Appointment Reminder 🔔</h2>
+
+            <p>Dear ${patientName},</p>
+
+            <p>
+                This is a reminder that you have an appointment
+                <strong>tomorrow</strong> with
+                <strong>Dr. ${doctorName}</strong>.
+            </p>
+
+            <table style="border-collapse:collapse;width:100%">
+                <tr>
+                    <td style="padding:6px"><strong>Date</strong></td>
+                    <td>${new Date(date).toDateString()}</td>
+                </tr>
+                <tr>
+                    <td style="padding:6px"><strong>Slot</strong></td>
+                    <td>${slot}</td>
+                </tr>
+                <tr>
+                    <td style="padding:6px"><strong>Token No.</strong></td>
+                    <td style="font-size:1.4rem;font-weight:bold;color:#2563EB">
+                        ${tokenNo}
+                    </td>
+                </tr>
+            </table>
+
+            <p style="color:#6b7280;font-size:0.85rem">
+                Please arrive on time and carry your Token No. with you.
+            </p>
+        </div>
+        `
+    );
+
 module.exports = {
     sendMail,
     sendOTPEmail,
     sendCancellationEmail,
     sendBookingConfirmationEmail,
+    sendReminderEmail,
 };

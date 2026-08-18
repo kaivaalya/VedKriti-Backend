@@ -22,7 +22,7 @@ exports.rolloverDoctorAvailability = async () => {
 
   let created = 0;
 
-  for (let offset = 0; offset <= WINDOW_DAYS; offset++) {
+  for (let offset = 0; offset < WINDOW_DAYS; offset++) {
     const day = new Date(today);
     day.setDate(day.getDate() + offset);
 
@@ -49,7 +49,7 @@ exports.rolloverDoctorAvailability = async () => {
             eveningNextToken: 1,
           },
         },
-        { upsert: true,returnDocument: "after" }
+        { upsert: true, returnDocument: 'before' }
       );
       if (result === null) created += 1;
     }

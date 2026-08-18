@@ -12,7 +12,7 @@ const AppError = require('../utils/AppError');
 exports.getProfile= async (req,res,next)=>{
 
     try {
-        const patient = await Patient.findById(req.user.id).select('-passwors');
+        const patient = await Patient.findById(req.user.id).select('-password');
         if(!patient)return next(new AppError('patient not found ',404));
         res.status(200).json({status:'SUCCESS',data: patient});
     } catch (err) {
@@ -71,6 +71,8 @@ exports.submitPreDiagnosis = async (req,res,next)=>{
 
      booking.preDiagnosis = preDiagnosis;
     await booking.save();
+    
+    res.status(200).json({ status: 'SUCCESS', message: 'Pre-diagnosis submitted.' });
         
     } catch (err) {
         next(err)

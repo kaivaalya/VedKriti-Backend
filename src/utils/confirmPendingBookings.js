@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Booking = require('../models/Booking.model');
 const DoctorAvailability = require("../models/DoctorAvailability.model");
 const Patient = require("../models/Patient.model");
+const Doctor  = require("../models/Doctor.model");
 
 
 const {
@@ -19,17 +20,20 @@ const slotFields = {
 
     MORNING: {
         capacity: "morningCapacity",
-        bookings: "morningBookings"
+        bookings: "morningBookings",
+        nextToken: "morningNextToken"
     },
 
     AFTERNOON: {
         capacity: "afternoonCapacity",
-        bookings: "afternoonBookings"
+        bookings: "afternoonBookings",
+        nextToken: "afternoonNextToken"
     },
 
     EVENING: {
         capacity: "eveningCapacity",
-        bookings: "eveningBookings"
+        bookings: "eveningBookings",
+        nextToken: "eveningNextToken"
     }
 
 };
@@ -58,7 +62,8 @@ const confirmPendingBookings =
 
             const {
                 capacity,
-                bookings
+                bookings,
+                nextToken
             }
                 =
                 slotFields[slot];
@@ -107,6 +112,10 @@ const confirmPendingBookings =
 
             // oldest pending patients first
 
+            // fetch doctor name once for emails
+            const doctor     = await Doctor.findById(docID).select('name').session(session);
+            const doctorName = doctor?.name || 'Doctor';
+
             const pendingBookings =
                 await Booking.find({
 
@@ -132,32 +141,8 @@ const confirmPendingBookings =
 
 
 
-                // generate token
-
-                const tokenCount =
-                    await Booking.countDocuments({
-
-                        docID,
-
-                        date,
-
-                        slot,
-
-                        status: {
-                            $in: [
-                                "CONFIRMED",
-                                "CONSULTING",
-                                "DONE"
-                            ]
-                        }
-
-                    })
-                        .session(session);
-
-
-
-                const tokenNo =
-                    tokenCount + 1;
+                // get token from the availability record directly
+                const tokenNo = availability[nextToken];
 
 
 
@@ -194,9 +179,10 @@ const confirmPendingBookings =
 
 
 
-                // increase booked seats
+                // increase booked seats AND the nextToken counter
 
                 availability[bookings]++;
+                availability[nextToken]++;
 
 
 
@@ -220,7 +206,7 @@ const confirmPendingBookings =
 
                     patient.name,
 
-                    docID,
+                    doctorName,   // ✅ actual name, not ObjectId
 
                     date,
 

@@ -26,10 +26,14 @@ router.put('/take-feedback', restrictTo('PATIENT'), ctrl.takeFeedback);
 
 router.put('/emergency-cancel', restrictTo('DOCTOR'),verifedDoctor, ctrl.emergencyCancel);
 
+router.put('/update-capacity', restrictTo('DOCTOR'),verifedDoctor, ctrl.updateCapacity);
 
 router.get('/patient-report-bookings', restrictTo('DOCTOR'),verifedDoctor, ctrl.getPatientBookingsForDoctor);
 
-
 router.get('/agora-token', ctrl.getAgoraToken);
+
+router.put('/cancel', restrictTo('PATIENT'), ctrl.cancelBooking);
+
+router.put('/reschedule', restrictTo('PATIENT'), ctrl.rescheduleBooking);
 
 module.exports = router;
