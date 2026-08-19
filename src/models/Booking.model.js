@@ -35,7 +35,7 @@ const bookingSchema = new mongoose.Schema(
       type:    String,
       enum:    ['UNPAID', 'PAID', 'REFUNDED'],
       default: 'UNPAID',
-  },
+  }},
   { timestamps: true }
 );
 
