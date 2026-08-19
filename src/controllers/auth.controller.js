@@ -239,10 +239,9 @@ try{
 
     const decoded = verifyRefreshToken(refreshToken)
 
+    const accessToken = generateAccessToken({id: decoded.id.toString(), role: decoded.role})
 
-    const accessToken = generateAccessToken({id: decoded._id.toString(), role: decoded.role})
-
-    const newRefreshToken= generateRefreshToken({id: decoded._id.toString(), role: decoded.role})
+    const newRefreshToken= generateRefreshToken({id: decoded.id.toString(), role: decoded.role})
 
 
    res.cookie("refreshToken", newRefreshToken, {

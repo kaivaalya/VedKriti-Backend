@@ -52,5 +52,6 @@ exports.rolloverDoctorAvailability = async () => {
       );
       if (result === null) created += 1;
     }
+  }
   console.log(`[availability-rollover] removed ${deletedCount} past record(s), created ${created} new record(s)`);
 };
