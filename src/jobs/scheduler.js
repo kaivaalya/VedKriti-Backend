@@ -9,6 +9,25 @@ exports.startScheduledJobs = () => {
   cron.schedule('0 0 * * *', async () => {
     try {
       await rolloverDoctorAvailability();
+
+      // Fix: Mark all past bookings that were CONFIRMED (but never started by the doctor) as CANCELLED
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const result = await Booking.updateMany(
+        { date: { $lt: today }, status: 'CONFIRMED' },
+        { 
+          $set: { 
+            status: 'CANCELLED', 
+            cancellationReason: 'Doctor did not start the consultation on the scheduled date.' 
+          } 
+        }
+      );
+      
+      if (result.modifiedCount > 0) {
+        console.log(`[midnight-job] Auto-cancelled ${result.modifiedCount} abandoned past bookings.`);
+      }
+
     } catch (err) {
       console.error('[availability-rollover] failed:', err);
     }
