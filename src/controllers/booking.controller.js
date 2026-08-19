@@ -156,7 +156,7 @@ if (!avail) {
   throw new AppError("Unable to reserve slot.", 500);
 }
 
-// Atomic token number
+
 const tokenNo = avail[nextToken] - 1;
 const otp = generateConsultationOTP();
 const otpExpiry = new Date(bookingDate.getTime() + 24 * 60 * 60 * 1000);
@@ -277,6 +277,17 @@ exports.startConsultation = async (req, res, next) => {
     if (booking.status !== 'CONFIRMED') {
       return next(new AppError('Booking must be CONFIRMED to start consultation.', 400));
     }
+
+   
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const bookingDate = new Date(booking.date);
+    bookingDate.setHours(0, 0, 0, 0);
+
+    if (bookingDate.getTime() !== today.getTime()) {
+      return next(new AppError('You can only start consultations scheduled for today.', 400));
+    }
+
     if (booking.otp !== otp) return next(new AppError('Invalid OTP.', 400));
 
     booking.status = 'CONSULTING';
@@ -343,7 +354,7 @@ exports.takeFeedback = async (req, res, next) => {
     booking.feedback = feedback || '';
     await booking.save();
 
-    // Recalculate doctor's average rating
+  
     const ratedBookings = await Booking.find({ docID: booking.docID, rating: { $ne: null } });
     const avgRating = ratedBookings.reduce((sum, b) => sum + b.rating, 0) / ratedBookings.length;
     await Doctor.findByIdAndUpdate(booking.docID, { rating: parseFloat(avgRating.toFixed(1)) });
@@ -379,26 +390,31 @@ exports.emergencyCancel = async (req, res, next) => {
 
     const doctor = await Doctor.findById(docID).select('name');
 
-    // Bulk cancel
+    
     await Booking.updateMany(
       { docID, date: cancelDate, status: { $in: ['CONFIRMED', 'PENDING'] } },
       { $set: { status: 'CANCELLED', cancellationReason: reason || 'Doctor emergency.' } }
     );
 
-    // Zero-out slot capacities for that day
+
     await DoctorAvailability.findOneAndUpdate(
       { docID, date: cancelDate },
       { $set: { morningCapacity: 0, afternoonCapacity: 0, eveningCapacity: 0 } }
     );
 
-    // Notify patients by email (fire-and-forget)
+  
     bookings.forEach((b) => {
       sendCancellationEmail(b.patID.email, b.patID.name, doctor.name, cancelDate, reason).catch(console.error);
     });
 
+
+    const { processRefundsForBookings } = require('../utils/refund.utils');
+    const bookingIdsToRefund = bookings.map(b => b._id);
+    await processRefundsForBookings(bookingIdsToRefund, 'Doctor emergency cancellation.');
+
     res.status(200).json({
       status: 'SUCCESS',
-      message: `${bookings.length} booking(s) cancelled and patients notified.`,
+      message: `${bookings.length} booking(s) cancelled, patients notified, and refunds initiated.`,
     });
   } catch (err) {
     next(err);
@@ -407,14 +423,14 @@ exports.emergencyCancel = async (req, res, next) => {
 
 
 // GET /api/booking/patient-report-bookings?patID=<id>   (DOCTOR)
-// Doctor fetches all DONE/CONSULTING bookings of a patient to access their reports
+
 
 exports.getPatientBookingsForDoctor = async (req, res, next) => {
   try {
     const { patID } = req.query;
     if (!patID) return next(new AppError('patID is required.', 400));
 
-    // Verify the doctor has (or has had) a consultation with this patient
+   
     const hasRelation = await Booking.findOne({
       docID: req.user.id,
       patID,
@@ -449,7 +465,7 @@ exports.updateCapacity = async (req, res, next) => {
     if (!date) return next(new AppError("Date required", 400));
     const updateDate = new Date(date);
 
-    // 1. Fetch current availability BEFORE updating to check for overflows
+  
     const avail = await DoctorAvailability.findOneAndUpdate(
       { docID, date: updateDate },
       {
@@ -468,7 +484,7 @@ exports.updateCapacity = async (req, res, next) => {
       return next(new AppError("Availability not found", 404));
     }
 
-    // 2. Handle downgrades (Overflow -> PENDING)
+  
     const newCaps = { MORNING: morningCapacity, AFTERNOON: afternoonCapacity, EVENING: eveningCapacity };
     const bookingsField = { MORNING: 'morningBookings', AFTERNOON: 'afternoonBookings', EVENING: 'eveningBookings' };
 
@@ -477,7 +493,6 @@ exports.updateCapacity = async (req, res, next) => {
       if (newCap !== undefined && avail[bookingsField[slot]] > newCap) {
         const overflowCount = avail[bookingsField[slot]] - newCap;
 
-        // Find the most recently added patients to remove from the slot
         const excessBookings = await Booking.find({
           docID, date: updateDate, slot, status: { $in: ['CONFIRMED', 'CONSULTING'] }
         })
@@ -491,16 +506,23 @@ exports.updateCapacity = async (req, res, next) => {
           b.otp = '';
           b.otpExpiry = null;
           await b.save({ session });
+
+         
+          await mongoose.model('Payment').updateMany(
+            { bookingId: b._id, status: 'CREATED' },
+            { $set: { status: 'FAILED' } },
+            { session }
+          );
         }
 
-        // Adjust the bookings counter down to the new capacity
+       
         await DoctorAvailability.updateOne(
           { docID, date: updateDate },
           { $set: { [bookingsField[slot]]: newCap } },
           { session }
         );
 
-        // Notify patients they were waitlisted (fire-and-forget outside transaction)
+        
         excessBookings.forEach(async (b) => {
           const patient = await Patient.findById(b.patID).select('email name');
           const doctor  = await Doctor.findById(docID).select('name');
@@ -514,7 +536,7 @@ exports.updateCapacity = async (req, res, next) => {
 
     await session.commitTransaction();
 
-    // 3. Handle upgrades (Free space -> confirm pending)
+    
     await confirmPendingBookings(docID, updateDate, "MORNING");
     await confirmPendingBookings(docID, updateDate, "AFTERNOON");
     await confirmPendingBookings(docID, updateDate, "EVENING");
@@ -566,10 +588,10 @@ exports.getAgoraToken = async (req, res, next) => {
   
     const channelName = `vedkriti_${bookingId}`;
 
-    // Doctor = uid 1, Patient = uid 2
+  
     const uid = isDoctor ? 1 : 2;
 
-    const expirySeconds = 3600; // 1 hour
+    const expirySeconds = 3600; 
  
     const token = generateAgoraToken(channelName, uid, expirySeconds);
 
@@ -638,7 +660,13 @@ exports.cancelBooking = async (req, res, next) => {
       patient.email, patient.name, doctor.name, booking.date, reason || 'Cancelled by you.'
     ).catch(console.error);
 
-    res.status(200).json({ status: 'SUCCESS', message: 'Booking cancelled successfully.' });
+    
+    if (booking.paymentStatus === 'PAID') {
+      const { processRefundsForBookings } = require('../utils/refund.utils');
+      await processRefundsForBookings([booking._id], 'Patient cancelled appointment.');
+    }
+
+    res.status(200).json({ status: 'SUCCESS', message: 'Booking cancelled. Refund initiated if applicable.' });
 
   } catch (err) {
     if (session.inTransaction()) await session.abortTransaction();

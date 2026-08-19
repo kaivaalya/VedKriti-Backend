@@ -231,15 +231,15 @@ exports.findDoctor = async (req,res,next)=>{
     }
     if (minRating) query.rating = { $gte: Number(minRating) };
     if (date) {
-               const bookingDate = normalizeDate(date);   // or new Date(date)
-                   const jsDay = bookingDate.getDay();        // 0=Sun, 1=Mon...
-                   const dayNum = jsDay === 0 ? 7 : jsDay;    // 1=Mon ... 7=Sun
+               const bookingDate = normalizeDate(date);   
+                   const jsDay = bookingDate.getDay();        
+                   const dayNum = jsDay === 0 ? 7 : jsDay;   
 
                      query.holidays = { $nin: [dayNum] };
 }
 
     const doctors = await Doctor.find(query).select(
-      '-password -holidays -morningCapacity -afternoonCapacity -eveningCapacity'
+      '-password  -verificationNote '
     );
 
     if (!doctors.length) return next(new AppError('No doctors found matching your criteria.', 404));
@@ -255,7 +255,7 @@ exports.findDoctor = async (req,res,next)=>{
 exports.getDoctorProfile = async (req,res,next)=>{
     try{
         
-        const doctor = await Doctor.findOne({_id:req.params.id,  verified: true}).select('-password');
+        const doctor = await Doctor.findOne({_id:req.params.id,  verified: true}).select('-password -email -verificationNote');
         const experiance = await DoctorExperience.find({docID: req.params.id}).sort({startDate:-1});
       
 

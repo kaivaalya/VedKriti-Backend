@@ -29,8 +29,18 @@ const bookingSchema = new mongoose.Schema(
 
     
     cancellationReason: { type: String, default: '' },
+
+    // Payment tracking
+    paymentStatus: {
+      type:    String,
+      enum:    ['UNPAID', 'PAID', 'REFUNDED'],
+      default: 'UNPAID',
   },
   { timestamps: true }
 );
+
+// FIX: Prevent double-click race conditions by enforcing a unique constraint at the database level.
+// A patient cannot book the exact same doctor, on the exact same date, for the exact same slot twice.
+bookingSchema.index({ docID: 1, patID: 1, date: 1, slot: 1 }, { unique: true });
 
 module.exports = mongoose.models.Booking || mongoose.model('Booking', bookingSchema);
