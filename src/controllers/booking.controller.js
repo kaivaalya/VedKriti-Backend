@@ -314,7 +314,7 @@ exports.endConsultation = async (req, res, next) => {
     if (booking.docID.toString() !== req.user.id) {
       return next(new AppError('Not authorised.', 403));
     }
-    if (booking.status !== 'CONSULTING') {
+    if (booking.status !== 'CONSULTING' && booking.status !=='CONFIRMED') {
       return next(new AppError('Consultation has not started yet.', 400));
     }
 
