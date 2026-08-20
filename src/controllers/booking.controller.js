@@ -180,11 +180,6 @@ const [booking] = await Booking.create(
 await session.commitTransaction();
    
 
-     const patient = await Patient.findById(patID).select('email name');
-    sendBookingConfirmationEmail(
-      patient.email, patient.name, doctor.name,
-      bookingDate, slotUpper, tokenNo, otp
-    ).catch(console.error);
 
     res.status(201).json({
       status: 'SUCCESS',

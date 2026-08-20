@@ -7,7 +7,7 @@ const Doctor       = require('../models/Doctor.model');
 const Patient      = require('../models/Patient.model');
 const DoctorAvailability = require('../models/DoctorAvailability.model');
 const { confirmPendingBookings } = require('../utils/confirmPendingBookings');
-const { sendCancellationEmail }  = require('../configs/mailer.config');
+const { sendCancellationEmail,sendBookingConfirmationEmail }  = require('../configs/mailer.config');
 const AppError     = require('../utils/AppError');
 
 
@@ -190,6 +190,14 @@ exports.verifyPayment = async (req, res, next) => {
         message: 'Payment verified, but the booking was cancelled due to timeout. A full refund has been initiated.',
       });
     }
+
+
+    
+     const patient = await Patient.findById(patID).select('email name');
+    sendBookingConfirmationEmail(
+      patient.email, patient.name, doctor.name,
+      bookingDate, slotUpper, tokenNo, otp
+    ).catch(console.error);
 
     res.status(200).json({
       status:  'SUCCESS',
