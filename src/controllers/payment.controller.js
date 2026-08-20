@@ -193,7 +193,7 @@ exports.verifyPayment = async (req, res, next) => {
 
 
     
-     const patient = await Patient.findById(patID).select('email name');
+     const patient = await Patient.findById( req.user.id).select('email name');
     sendBookingConfirmationEmail(
       patient.email, patient.name, doctor.name,
       bookingDate, slotUpper, tokenNo, otp
