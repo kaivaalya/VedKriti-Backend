@@ -215,26 +215,69 @@ await session.commitTransaction();
 // GET /api/booking/patient-bookings?status=
 //patient can ask any type of booking
 
-exports.fetchPatientBookings = async (req,res,next)=>{
+exports.fetchPatientBookings = async (req, res, next) => {
     try {
-        const {status} = req.query;
-        const query ={patID:req.user.id}
+        const { status } = req.query;
 
-         if (status) query.status = status.toUpperCase();
+        const query = {
+            patID: req.user.id
+        };
 
-          const bookings = await Booking.find(query)
-      .populate('docID', 'name photo specialization1 designation city facilityName consultationFee')
-      .sort({ createdAt: -1 });
+        if (status) {
+            query.status = status.toUpperCase();
+        }
 
-       res.status(200).json({ status: 'SUCCESS', count: bookings.length, data: bookings });
+        const bookings = await Booking.find(query)
+            .populate(
+                'docID',
+                'name photo specialization1 designation city facilityName consultationFee'
+            )
+            .sort({ createdAt: -1 })
+            .lean();
 
-        
+        const bookingsWithToken = await Promise.all(
+            bookings.map(async (booking) => {
+
+                const availability = await DoctorAvailability.findOne({
+                    docID: booking.docID._id,
+                    date: booking.date
+                }).lean();
+
+                let tokenNo = null;
+
+                if (availability) {
+                    switch (booking.slot) {
+                        case 'MORNING':
+                            tokenNo = availability.morningNextToken;
+                            break;
+
+                        case 'AFTERNOON':
+                            tokenNo = availability.afternoonNextToken;
+                            break;
+
+                        case 'EVENING':
+                            tokenNo = availability.eveningNextToken;
+                            break;
+                    }
+                }
+
+                return {
+                    ...booking,
+                    tokenNo
+                };
+            })
+        );
+
+        res.status(200).json({
+            status: 'SUCCESS',
+            count: bookingsWithToken.length,
+            data: bookingsWithToken
+        });
+
     } catch (err) {
-        next(err)
-        
+        next(err);
     }
-}
-
+};
 
 
 // GET /api/booking/doctor-bookings?date=
