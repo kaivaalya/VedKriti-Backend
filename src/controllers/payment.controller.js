@@ -191,12 +191,12 @@ exports.verifyPayment = async (req, res, next) => {
       });
     }
 
-
+const d = await Doctor.findById(booking.docID);
     
      const patient = await Patient.findById( req.user.id).select('email name');
     sendBookingConfirmationEmail(
-      patient.email, patient.name, doctor.name,
-      bookingDate, slotUpper, tokenNo, otp
+      patient.email, patient.name, d.name,
+      booking.date, booking.slot, booking.tokenNo, booking.otp
     ).catch(console.error);
 
     res.status(200).json({
