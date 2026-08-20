@@ -348,21 +348,27 @@ catch(err){
 
 //POST /api/doctor/upload-document 
 exports.uploadDocument = async (req, res, next) => {
-    try {
+     try {
+        const documentCount = await DoctorDocument.countDocuments({
+            docID: req.user.id
+        });
 
-        const Document = await DoctorDocument.find({docID:req.user.id});
-        if(Document.count()>=2){
-            return next(new AppError('file Already uploaded',400))
+        if (documentCount >= 2) {
+            return next(
+                new AppError("Maximum 2 documents already uploaded.", 400)
+            );
         }
-        
+
         if (!req.file) {
-            return next(new AppError('No file attached.', 400));
+            return next(new AppError("No file attached.", 400));
         }
 
         const { title, isPublic } = req.body;
 
         if (!title) {
-            return next(new AppError('Document title is required.', 400));
+            return next(
+                new AppError("Document title is required.", 400)
+            );
         }
 
         let fileType;
