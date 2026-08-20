@@ -234,7 +234,7 @@ exports.fetchPatientBookings = async (req, res, next) => {
             bookings.map(async (booking) => {
 
                 const availability = await DoctorAvailability.findOne({
-                    docID: booking.docID._id,
+                    docID: booking.docID,
                     date: booking.date
                 }).lean();
 
