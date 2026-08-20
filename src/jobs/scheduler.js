@@ -15,7 +15,7 @@ exports.startScheduledJobs = () => {
       today.setHours(0, 0, 0, 0);
 
       const result = await Booking.updateMany(
-        { date: { $lt: today }, status: 'CONFIRMED' },
+        { date: { $lt: today },status: { $in: ["CONFIRMED", "PENDING"] }},
         { 
           $set: { 
             status: 'CANCELLED', 
