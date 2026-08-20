@@ -350,7 +350,7 @@ catch(err){
 exports.uploadDocument = async (req, res, next) => {
     try {
 
-        const Document = await Doctordocument.find({docID:req.user.id});
+        const Document = await DoctorDocument.find({docID:req.user.id});
         if(Document.count()>=2){
             return next(new AppError('file Already uploaded',400))
         }
