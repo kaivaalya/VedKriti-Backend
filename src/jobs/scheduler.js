@@ -6,7 +6,7 @@ const { sendReminderEmail } = require('../configs/mailer.config');
 exports.startScheduledJobs = () => {
 
  
-  cron.schedule('* * * * *', async () => {
+  cron.schedule('0 0 * * *', async () => {
     try {
       await rolloverDoctorAvailability();
 
